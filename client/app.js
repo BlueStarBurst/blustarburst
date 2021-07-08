@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { render } from 'react-dom'
 
 import "./style.css"
@@ -9,23 +9,153 @@ import topL from './img/topL.png'
 import bottomL from './img/bottomL.png'
 import bottomR from './img/bottomR.png'
 
+import placeHolder from './img/download.jpg'
+import { over } from 'lodash';
+
 function Card(props) {
+
+    const top = useRef(null);
+    const bot = useRef(null);
+    const card = useRef(null);
+    const overlay = useRef(null);
+
+    const [isReady, setReady] = useState(true);
+    const [content, setContent] = useState(null);
+
+    var timeout = '';
+
+    if (props.sm) {
+
+        if (props.l) {
+            return (
+                <div className="myCard smCard sml" ref={card}>
+                    {props.children}
+                    <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
+                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+                </div>
+            );
+        } else {
+            return (
+                <div className="myCard smCard smr" ref={card}>
+                    {props.children}
+                    <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
+                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+                </div>
+            );
+        }
+
+
+    }
+
+    if (props.expandable) {
+        function open() {
+            if (!isReady) {
+                return;
+            }
+            setReady(false);
+            setContent(props.children);
+            console.log("hi")
+            overlay.current.className = "cover hide";
+            top.current.className = "overlay topOpen";
+            bot.current.className = "overlay bottomOpen";
+            card.current.className = "myCard wideCard";
+            timeout = setTimeout(() => {
+                setReady(true);
+            }, 2000)
+        }
+
+        function close() {
+            if (!isReady) {
+                return;
+            }
+            setContent('');
+            setReady(false);
+            card.current.className = "myCard smallCard";
+            overlay.current.className = "cover show";
+            bot.current.className = "bottom overlay bottomIdle";
+            top.current.className = "top overlay topIdle";
+            timeout = setTimeout(() => {
+                setReady(true);
+            }, 2000)
+        }
+
+        return (
+
+            <div className="myCard smallCard" ref={card} onClick={open} onMouseLeave={close}>
+                {content}
+                <img src={props.coverImg} className="cover show" ref={overlay} />
+                <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
+                <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+            </div>
+
+        );
+    }
+
     return (
-        <div className="myCard">
-            <img src={topL} className="top overlay" draggable="false" />
+
+        <div className="myCard wideCard" ref={card}>
+            <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
             {props.children}
-            <img src={bottomR} className="bottom overlay" draggable="false" />
+            <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+        </div>
+
+    );
+
+
+}
+
+Card.defaultProps = {
+    coverImg: placeHolder
+}
+
+function Row(props) {
+
+    var children = props.children;
+
+
+
+    function hideSmCards() {
+        children = React.Children.map(props.children, child => {
+            // Checking isValidElement is the safe way and avoids a typescript
+            // error too.
+            if (React.isValidElement(child) && child.props.sm) {
+                return React.cloneElement(child, { hidden: true, hideCards: hideSmCards });
+            }
+            return child;
+        });
+        console.log(children);
+    }
+
+    function showSmCards() {
+        children = React.Children.map(props.children, child => {
+            // Checking isValidElement is the safe way and avoids a typescript
+            // error too.
+            if (React.isValidElement(child) && child.props.sm) {
+                return React.cloneElement(child, { hidden: false });
+            }
+            return child;
+        });
+        console.log(children);
+    }
+
+    hideSmCards();
+
+    useEffect(() => {
+        console.log(children)
+    });
+
+    return (
+        <div className="myRow" id={props.id}>
+            <div className="aspectRatio">
+                <div className="myCardRow">
+                    {children}
+                </div>
+            </div>
         </div>
     );
 }
 
-function Row(props) {
-    return (
-        <div className="myRow" id={props.id}>
-            {props.children}
-        </div>
-    );
-}
+
 
 
 
@@ -36,8 +166,15 @@ render(<>
         </Card>
     </Row>
     <Row id="webrtc">
-        <Card>
+        <Card sm l>
+            <h2>webrtc + three.js</h2>
+            <p>(wip) An online chatroom where  </p>
+        </Card>
+        <Card expandable coverImg={placeHolder}>
             <iframe id="webrtcFrame" src="https://bluestarburst.github.io/project-horizon/"></iframe>
+        </Card>
+        <Card sm>
+            <h1>smol!</h1>
         </Card>
     </Row>
     <Row id="next">
