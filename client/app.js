@@ -14,7 +14,8 @@ import bottomR from './img/bottomR.png'
 import placeHolder from './img/download.jpg'
 //import horizonex from './img/horizonex.gif'
 var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/horizonex.gif'
-import tutorialscheduleex from './img/tutorialscheduleex.gif'
+//import tutorialscheduleex from './img/tutorialscheduleex.gif'
+var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/tutorialscheduleex.gif'
 
 function Card(props) {
 

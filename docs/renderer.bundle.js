@@ -3610,20 +3610,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./client/img/tutorialscheduleex.gif":
-/*!*******************************************!*\
-  !*** ./client/img/tutorialscheduleex.gif ***!
-  \*******************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/tutorialscheduleex.gif");
-
-/***/ }),
-
 /***/ "./node_modules/firebase/app/dist/index.esm.js":
 /*!*****************************************************!*\
   !*** ./node_modules/firebase/app/dist/index.esm.js ***!
@@ -34204,7 +34190,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _img_bottomL_png__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./img/bottomL.png */ "./client/img/bottomL.png");
 /* harmony import */ var _img_bottomR_png__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./img/bottomR.png */ "./client/img/bottomR.png");
 /* harmony import */ var _img_download_jpg__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./img/download.jpg */ "./client/img/download.jpg");
-/* harmony import */ var _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./img/tutorialscheduleex.gif */ "./client/img/tutorialscheduleex.gif");
 
 
 
@@ -34216,8 +34201,9 @@ __webpack_require__.r(__webpack_exports__);
 
  //import horizonex from './img/horizonex.gif'
 
-var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/horizonex.gif';
+var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/horizonex.gif'; //import tutorialscheduleex from './img/tutorialscheduleex.gif'
 
+var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/tutorialscheduleex.gif';
 
 function Card(props) {
   const top = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
@@ -34396,7 +34382,7 @@ function Row(props) {
   l: true
 }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, "yay!")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
   expandable: true,
-  coverImg: _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_10__.default
+  coverImg: tutorialscheduleex
 }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("iframe", {
   id: "webrtcFrame",
   src: "https://bluestarburst.github.io/CSPSchedule/"
