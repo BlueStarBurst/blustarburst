@@ -4,6 +4,8 @@ import { render } from 'react-dom'
 import "./style.css"
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import firebase from 'firebase/app';
+
 import topR from './img/topR.png'
 import topL from './img/topL.png'
 import bottomL from './img/bottomL.png'
