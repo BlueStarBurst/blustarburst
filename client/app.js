@@ -10,7 +10,8 @@ import bottomL from './img/bottomL.png'
 import bottomR from './img/bottomR.png'
 
 import placeHolder from './img/download.jpg'
-import { over } from 'lodash';
+import horizonex from './img/horizonex.gif'
+import tutorialscheduleex from './img/tutorialscheduleex.gif'
 
 function Card(props) {
 
@@ -24,22 +25,25 @@ function Card(props) {
 
     var timeout = '';
 
-    if (props.sm) {
+    useEffect(() => {
+        console.log(props);
+    }, [props])
 
+    if (props.sm) {
         if (props.l) {
             return (
-                <div className="myCard smCard sml" ref={card}>
+                <div className={(props.hidden) ? "myCard smCard sml slideOutLeft" : "myCard smCard sml slideInLeft"} ref={card}>
                     {props.children}
-                    <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
-                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+                    <img src={topR} ref={top} className="top overlay topIdle1" draggable="false" />
+                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle1" draggable="false" />
                 </div>
             );
         } else {
             return (
-                <div className="myCard smCard smr" ref={card}>
+                <div className={(props.hidden) ? "myCard smCard smr slideOutRight" : "myCard smCard smr slideInRight"} ref={card}>
                     {props.children}
-                    <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
-                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+                    <img src={topL} ref={top} className="top overlay topIdle3" draggable="false" />
+                    <img src={bottomL} ref={bot} className="bottom overlay bottomIdle3" draggable="false" />
                 </div>
             );
         }
@@ -52,6 +56,8 @@ function Card(props) {
             if (!isReady) {
                 return;
             }
+            props.setFocus(true);
+
             setReady(false);
             setContent(props.children);
             console.log("hi")
@@ -68,12 +74,14 @@ function Card(props) {
             if (!isReady) {
                 return;
             }
+            props.setFocus(false);
+
             setContent('');
             setReady(false);
             card.current.className = "myCard smallCard";
             overlay.current.className = "cover show";
-            bot.current.className = "bottom overlay bottomIdle";
-            top.current.className = "top overlay topIdle";
+            bot.current.className = "bottom overlay bottomIdle2";
+            top.current.className = "top overlay topIdle2";
             timeout = setTimeout(() => {
                 setReady(true);
             }, 2000)
@@ -84,8 +92,8 @@ function Card(props) {
             <div className="myCard smallCard" ref={card} onClick={open} onMouseLeave={close}>
                 {content}
                 <img src={props.coverImg} className="cover show" ref={overlay} />
-                <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
-                <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+                <img src={topL} ref={top} className="top overlay topIdle2" draggable="false" />
+                <img src={bottomR} ref={bot} className="bottom overlay bottomIdle2" draggable="false" />
             </div>
 
         );
@@ -110,45 +118,25 @@ Card.defaultProps = {
 
 function Row(props) {
 
-    var children = props.children;
+    const [isFocused, setFocus] = useState(false);
 
-
-
-    function hideSmCards() {
-        children = React.Children.map(props.children, child => {
+    function createChildren() {
+        var children = React.Children.map(props.children, child => {
             // Checking isValidElement is the safe way and avoids a typescript
             // error too.
-            if (React.isValidElement(child) && child.props.sm) {
-                return React.cloneElement(child, { hidden: true, hideCards: hideSmCards });
+            if (React.isValidElement(child)) {
+                return React.cloneElement(child, { hidden: isFocused, setFocus: setFocus });
             }
             return child;
         });
-        console.log(children);
+        return children;
     }
-
-    function showSmCards() {
-        children = React.Children.map(props.children, child => {
-            // Checking isValidElement is the safe way and avoids a typescript
-            // error too.
-            if (React.isValidElement(child) && child.props.sm) {
-                return React.cloneElement(child, { hidden: false });
-            }
-            return child;
-        });
-        console.log(children);
-    }
-
-    hideSmCards();
-
-    useEffect(() => {
-        console.log(children)
-    });
 
     return (
         <div className="myRow" id={props.id}>
             <div className="aspectRatio">
                 <div className="myCardRow">
-                    {children}
+                    {createChildren()}
                 </div>
             </div>
         </div>
@@ -168,18 +156,32 @@ render(<>
     <Row id="webrtc">
         <Card sm l>
             <h2>webrtc + three.js</h2>
-            <p>(wip) An online chatroom where  </p>
+            <p>(wip) An online chatroom where users can interact with each other in a 3D environment </p>
         </Card>
-        <Card expandable coverImg={placeHolder}>
+        <Card expandable coverImg={horizonex}>
             <iframe id="webrtcFrame" src="https://bluestarburst.github.io/project-horizon/"></iframe>
         </Card>
         <Card sm>
-            <h1>smol!</h1>
+            <h2>smol!</h2>
         </Card>
     </Row>
     <Row id="next">
         <Card>
             <h1>Hello!</h1>
+        </Card>
+    </Row>
+    <Row id="schedule">
+        <Card sm l>
+            <h2>yay!</h2>
+        </Card>
+        <Card expandable coverImg={tutorialscheduleex}>
+            <iframe id="webrtcFrame" src="https://bluestarburst.github.io/CSPSchedule/"></iframe>
+        </Card>
+        <Card sm>
+            <h2>Tutorial Schedule!</h2>
+            <p>
+                A virtual calendar that allows students to plan study sessions.
+            </p>
         </Card>
     </Row>
 </>, document.getElementById("root"));
@@ -196,10 +198,20 @@ render(<>
 
 
 //positions
-var spots = [0, document.getElementById("webrtc"), document.getElementById("next")];
+var spots = [];
+var tempRows = document.getElementsByClassName("myRow");
+var index = 0;
+var minDistance = 99999;
+for (var i = 0; i < tempRows.length; i++) {
+    if (Math.abs(document.documentElement.scrollTop - tempRows[i].offsetTop) < minDistance) {
+        index = i;
+        minDistance = Math.abs(document.documentElement.scrollTop - tempRows[i].offsetTop);
+    }
+    spots.push(tempRows[i]);
+}
 var hash = ['home', 'webrtc'];
 
-
+var pos = index;
 
 
 
@@ -264,7 +276,7 @@ document.onmousemove = (e) => {
 var lastScrollTop = 0;
 var up = false;
 
-var pos = 0;
+
 
 
 

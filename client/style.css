@@ -4,10 +4,12 @@
   width: 100%;
   display: block;
   justify-content: center;
+  --animation-time: 2s;
 }
 
 html {
   overflow: hidden;
+  height: max-content;
 }
 
 .myRow {
@@ -31,19 +33,35 @@ html {
 }
 
 .top {
-  top: 0;
+  top: -7%;
 }
 
 .bottom {
-  bottom: 0;
+  bottom: -7%;
 }
 
-.topIdle {
-  animation: hoverUp 5s infinite;
+.topIdle1 {
+  animation: topClose 2s, hoverUp 5s infinite 2s;
 }
 
-.bottomIdle {
-  animation: hoverDown 5s infinite;
+.bottomIdle1 {
+  animation: bottomClose 2s, hoverDown 5s infinite 2s;
+}
+
+.topIdle2 {
+  animation: topClose 2s, hoverUp 5s infinite 3s;
+}
+
+.bottomIdle2 {
+  animation: bottomClose 2s, hoverDown 5s infinite 3s;
+}
+
+.topIdle3 {
+  animation: topClose 2s, hoverUp 5s infinite 3.5s;
+}
+
+.bottomIdle3 {
+  animation: bottomClose 2s, hoverDown 5s infinite 3.5s;
 }
 
 .topOpen {
@@ -71,6 +89,24 @@ html {
   }
   100% {
     bottom: -100%;
+  }
+}
+
+@keyframes topClose {
+  0% {
+    top: -100%;
+  }
+  100% {
+    top: -7%;
+  }
+}
+
+@keyframes bottomClose {
+  0% {
+    bottom: -100%;
+  }
+  100% {
+    bottom: -7%;
   }
 }
 
@@ -103,10 +139,10 @@ html {
 }
 
 .aspectRatio {
-  width: 100%;
-  padding-top: 56.25%; /* 1:1 Aspect Ratio */
+  height: 90vh;
+  width: 160vh;
   position: relative; /* If you want text inside of it */
-  margin: auto;
+  margin: auto auto auto auto;
 }
 
 .myCardRow {
@@ -127,17 +163,16 @@ html {
 .myCard {
   position: relative;
 
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 4vh;
 
   outline: none;
-
   overflow: hidden;
-
-  border: white solid 3px;
-  border-radius: 30px;
+  border: 3px solid white;
+  outline: 3px solid white;
 }
 
 .smallCard {
@@ -150,6 +185,7 @@ html {
   height: 100%;
   width: 100%;
   animation: onWiden 2s;
+  border-radius: 30px;
 }
 
 @keyframes onWiden {
@@ -165,10 +201,15 @@ html {
 
 @keyframes onSmall {
   0% {
+    border-radius: 30px;
     height: 100%;
     width: 100%;
   }
+  90% {
+    border-radius: 30px;
+  }
   100% {
+    border-radius: 0px;
     height: 90vh;
     width: 40vh;
   }
@@ -242,7 +283,78 @@ html {
   display: flex;
   flex-direction: column;
   background-color: dimgray;
-  position: relative;
+  position: absolute;
+  padding: 1%;
+  text-align: center;
+}
+
+.sml {
+  margin-right: 85vh;
+}
+
+.smr {
+  margin-left: 85vh;
+}
+
+.slideInLeft {
+  transform: translateX(0);
+  animation: slideInLeft 2s;
+}
+
+.slideInRight {
+  transform: translateX(0);
+  animation: slideInRight 2s;
+}
+
+.slideOutLeft {
+  transform: translateX(-60vh);
+  animation: slideOutLeft 2s;
+}
+
+.slideOutRight {
+  transform: translateX(60vh);
+  animation: slideOutRight 2s;
+}
+
+@keyframes slideInLeft {
+  0% {
+    transform: translateX(-60vh);
+    border-radius: 30px;
+  }
+  90% {
+    border-radius: 30px;
+  }
+  100% {
+    border-radius: 0px;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(60vh);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-60vh);
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(60vh);
+  }
 }
 
 .smCard h2 {

@@ -34,7 +34,7 @@ const commonConfig = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.(jpg|png|svg|ico|icns|glb)$/,
+        test: /\.(jpg|png|svg|ico|icns|glb|gif)$/,
         loader: 'file-loader',
         options: {
           name: '[path][name].[ext]',
