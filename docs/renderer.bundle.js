@@ -34203,7 +34203,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/horizonex.gif'; //import tutorialscheduleex from './img/tutorialscheduleex.gif'
 
-var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/tutorialscheduleex.gif';
+var tutorialscheduleex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/tutorialscheduleex.gif';
 
 function Card(props) {
   const top = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
