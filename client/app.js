@@ -95,7 +95,7 @@ function Card(props) {
 
             <div className="myCard smallCard" ref={card} onClick={open} onMouseLeave={close}>
                 {content}
-                <img src={props.coverImg} className="cover show" ref={overlay} />
+                <img src={props.coverImg} className="show cover" ref={overlay} />
                 <img src={topL} ref={top} className="top overlay topIdle2" draggable="false" />
                 <img src={bottomR} ref={bot} className="bottom overlay bottomIdle2" draggable="false" />
             </div>
@@ -137,7 +137,7 @@ function Row(props) {
     }
 
     return (
-        <div className="myRow" id={props.id}>
+        <div className="myRow display" id={props.id}>
             <div className="aspectRatio">
                 <div className="myCardRow">
                     {createChildren()}

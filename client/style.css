@@ -230,17 +230,23 @@ html {
   width: auto;
   height: 100%;
   background-color: black;
+  animation: fadeIn2 2s;
 }
 
 .show {
   opacity: 0.75;
-  animation: fadeIn 2s;
+  animation: fadeOut2 1s;
 }
 
 .show:hover {
   opacity: 1;
   cursor: pointer;
   animation: hoverOver 1s;
+}
+
+.display {
+  animation: fadeIn 2s;
+  opacity: 1;
 }
 
 @keyframes hoverOver {
@@ -263,6 +269,15 @@ html {
     opacity: 0;
   }
   100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn2 {
+  0% {
+    opacity: 0;
+  }
+  100% {
     opacity: 0.75;
   }
 }
@@ -273,6 +288,15 @@ html {
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes fadeOut2 {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.75;
   }
 }
 
