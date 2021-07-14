@@ -12,7 +12,7 @@ import bottomL from './img/bottomL.png'
 import bottomR from './img/bottomR.png'
 
 import placeHolder from './img/download.jpg'
-import horizonex from './img/horizonex.gif'
+import horizonex from './img/projecthorizonex.gif'
 //var horizonex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/horizonex.gif'
 import tutorialscheduleex from './img/tutorialscheduleex.gif'
 //var tutorialscheduleex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/tutorialscheduleex.gif'
