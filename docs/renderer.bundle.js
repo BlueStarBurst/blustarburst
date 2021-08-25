@@ -34389,7 +34389,7 @@ function Row(props) {
 
 (0,react_dom__WEBPACK_IMPORTED_MODULE_1__.render)( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
   id: "home"
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "Woohoooooo!"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
+}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "Good Evening \u3053\u3093\u3070\u3093\u306F\uFF01 "))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
   id: "webrtc"
 }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
   sm: true,

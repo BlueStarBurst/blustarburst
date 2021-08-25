@@ -154,7 +154,7 @@ function Row(props) {
 render(<>
     <Row id="home">
         <Card>
-            <h1>Woohoooooo!</h1>
+            <h1>Good Evening こんばんは！ </h1>
         </Card>
     </Row>
     <Row id="webrtc">
