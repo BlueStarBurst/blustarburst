@@ -17,6 +17,10 @@ import horizonex from './img/projecthorizonex.gif'
 import tutorialscheduleex from './img/tutorialscheduleex.gif'
 //var tutorialscheduleex = 'https://media.githubusercontent.com/media/BlueStarBurst/BlueStarBurst.github.io/master/client/img/tutorialscheduleex.gif'
 
+import clouds from './img/clouds.png'
+import clouds2 from './img/clouds2.png'
+import clouds3 from './img/clouds3.png'
+
 function Card(props) {
 
     const top = useRef(null);
@@ -152,6 +156,16 @@ function Row(props) {
 
 
 render(<>
+    <div id="overfun" style={{ display: "none" }}>
+        <img src={clouds2} className="overfun2"></img>
+        <img src={clouds} className="overfun1"></img>
+    </div>
+
+    <div id="overfun2" style={{ display: "none" }}>
+        <img src={clouds2} className="overfunup2"></img>
+        <img src={clouds} className="overfunup1"></img>
+    </div>
+
     <Row id="home">
         <Card>
             <h1>Good Evening こんばんは！ </h1>
@@ -285,9 +299,16 @@ var up = false;
 
 
 var timeout = ''
+var lastpos = pos;
 
 function scrollToPos() {
     //window.location.hash = hash[pos];
+
+    if (lastpos != pos) {
+        document.getElementById("overfun").style.display = "none";
+        document.getElementById("overfun2").style.display = "none";
+    }
+
     if (pos == 0) {
         window.scrollTo({
             top: 0,
@@ -300,6 +321,15 @@ function scrollToPos() {
             behavior: 'smooth'
         })
     }
+
+    if (lastpos > pos) {
+        document.getElementById("overfun2").style.display = "flex";
+    } else if (lastpos < pos) {
+        document.getElementById("overfun").style.display = "flex";
+    }
+
+    lastpos = pos;
+
 
     clearTimeout(timeout);
     timeout = setTimeout(function () {

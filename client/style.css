@@ -384,3 +384,116 @@ html {
 .smCard h2 {
   margin: 0;
 }
+
+#overfun {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overfun1 {
+  animation: scroll1 1s;
+  animation-timing-function: ease-in;
+  position: absolute;
+  left: -10vw;
+  top: 0;
+  opacity: 0;
+}
+
+@keyframes scroll1 {
+  0% {
+    transform: translate(-2vw, 100vh);
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(5vw, -100vh);
+  }
+}
+
+.overfun2 {
+  animation: scroll2 1.8s;
+  position: absolute;
+  left: -10vw;
+  top: 0;
+  opacity: 0;
+}
+
+@keyframes scroll2 {
+  0% {
+    opacity: 1;
+    transform: translate(20vw, 100vh);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-10vw, -100vh);
+  }
+}
+
+.overfun3 {
+  animation: scroll3 1.4s;
+  position: absolute;
+  left: -2vw;
+  top: 0;
+  opacity: 0;
+}
+
+@keyframes scroll3 {
+  0% {
+    opacity: 1;
+    transform: translateY(110vh);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-130vh);
+  }
+}
+
+#overfun2 {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overfunup1 {
+  animation: scrollup1 1s;
+  animation-timing-function: ease-in;
+  position: absolute;
+  left: -10vw;
+  top: 0;
+  opacity: 0;
+}
+
+@keyframes scrollup1 {
+  0% {
+    transform: translate(5vw, -100vh);
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-2vw, 100vh);
+  }
+}
+
+.overfunup2 {
+  animation: scrollup2 1.8s;
+  position: absolute;
+  left: -10vw;
+  top: 0;
+  opacity: 0;
+}
+
+@keyframes scrollup2 {
+  0% {
+    opacity: 1;
+    transform: translate(-10vw, -100vh);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(20vw, 100vh);
+  }
+}
