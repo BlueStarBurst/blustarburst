@@ -38,8 +38,6 @@ function Card(props) {
             return (
                 <div className={(props.hidden) ? "myCard smCard sml slideOutLeft" : "myCard smCard sml slideInLeft"} ref={card}>
                     {props.children}
-                    <img src={topR} ref={top} className="top overlay topIdle1" draggable="false" />
-                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle1" draggable="false" />
                 </div>
             );
         } else {
@@ -66,8 +64,6 @@ function Card(props) {
             setContent(props.children);
             console.log("hi")
             overlay.current.className = "cover hide";
-            top.current.className = "overlay topOpen";
-            bot.current.className = "overlay bottomOpen";
             card.current.className = "myCard wideCard";
             timeout = setTimeout(() => {
                 setReady(true);
@@ -82,10 +78,8 @@ function Card(props) {
 
             setContent('');
             setReady(false);
-            card.current.className = "myCard smallCard";
+            card.current.className = "myCard smallCard openable";
             overlay.current.className = "cover show";
-            bot.current.className = "bottom overlay bottomIdle2";
-            top.current.className = "top overlay topIdle2";
             timeout = setTimeout(() => {
                 setReady(true);
             }, 2000)
@@ -93,11 +87,9 @@ function Card(props) {
 
         return (
 
-            <div className="myCard smallCard" ref={card} onClick={open} onMouseLeave={close}>
+            <div className="myCard smallCard openable" ref={card} onClick={open} onMouseLeave={close}>
                 {content}
                 <img src={props.coverImg} className="show cover" ref={overlay} />
-                <img src={topL} ref={top} className="top overlay topIdle2" draggable="false" />
-                <img src={bottomR} ref={bot} className="bottom overlay bottomIdle2" draggable="false" />
             </div>
 
         );
@@ -106,9 +98,7 @@ function Card(props) {
     return (
 
         <div className="myCard wideCard" ref={card}>
-            <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
             {props.children}
-            <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
         </div>
 
     );
@@ -154,7 +144,7 @@ function Row(props) {
 render(<>
     <Row id="home">
         <Card>
-            <h1>Woohoooooo!</h1>
+            <h1>Good Evening こんばんは！ </h1>
         </Card>
     </Row>
     <Row id="webrtc">
