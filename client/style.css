@@ -386,6 +386,7 @@ html {
 }
 
 #overfun {
+  pointer-events: none;
   position: fixed;
   z-index: 1000;
   display: flex;
@@ -394,6 +395,7 @@ html {
 }
 
 .overfun1 {
+  pointer-events: none;
   animation: scroll1 1s;
   animation-timing-function: ease-in;
   position: absolute;
@@ -414,6 +416,7 @@ html {
 }
 
 .overfun2 {
+  pointer-events: none;
   animation: scroll2 1.8s;
   position: absolute;
   left: -10vw;
@@ -433,6 +436,7 @@ html {
 }
 
 .overfun3 {
+  pointer-events: none;
   animation: scroll3 1.4s;
   position: absolute;
   left: -2vw;
@@ -452,14 +456,17 @@ html {
 }
 
 #overfun2 {
+  pointer-events: none;
   position: fixed;
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
+  pointer-events: none;
 }
 
 .overfunup1 {
+  pointer-events: none;
   animation: scrollup1 1s;
   animation-timing-function: ease-in;
   position: absolute;
@@ -480,6 +487,7 @@ html {
 }
 
 .overfunup2 {
+  pointer-events: none;
   animation: scrollup2 1.8s;
   position: absolute;
   left: -10vw;
