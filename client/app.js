@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import { render } from 'react-dom'
 
 import "./style.css"
@@ -21,187 +21,86 @@ import clouds from './img/clouds.png'
 import clouds2 from './img/clouds2.png'
 import clouds3 from './img/clouds3.png'
 
-function Card(props) {
 
-    const top = useRef(null);
-    const bot = useRef(null);
-    const card = useRef(null);
-    const overlay = useRef(null);
+import space1 from './img/new/space12.png'
+import space2 from './img/new/space2.png'
+import space3 from './img/new/space3.png'
+import space4 from './img/new/space4.png'
 
+function Web(props) {
+    var children = React.Children.toArray(props.children);
+
+    const [page, setPage] = useState(0);
     const [isReady, setReady] = useState(true);
-    const [content, setContent] = useState(null);
 
-    var timeout = '';
+    var timeout = ''
 
-    useEffect(() => {
-        console.log(props);
-    }, [props])
+    function detect(e) {
 
-    if (props.sm) {
-        if (props.l) {
-            return (
-                <div className={(props.hidden) ? "myCard smCard sml slideOutLeft" : "myCard smCard sml slideInLeft"} ref={card}>
-                    {props.children}
-                    <img src={topR} ref={top} className="top overlay topIdle1" draggable="false" />
-                    <img src={bottomR} ref={bot} className="bottom overlay bottomIdle1" draggable="false" />
-                </div>
-            );
-        } else {
-            return (
-                <div className={(props.hidden) ? "myCard smCard smr slideOutRight" : "myCard smCard smr slideInRight"} ref={card}>
-                    {props.children}
-                    <img src={topL} ref={top} className="top overlay topIdle3" draggable="false" />
-                    <img src={bottomL} ref={bot} className="bottom overlay bottomIdle3" draggable="false" />
-                </div>
-            );
+        const window = e.target;
+
+        if (!isReady) {
+            window.scrollTo(0, 1);
+            return;
         }
 
+        console.log(window.scrollTop);
+        if (window.scrollTop < 1) {
+            if (page != 0) {
+                console.log("scrolling up");
+                setPage(page - 1);
+                setReady(false);
+                timeout = setTimeout(() => { setReady(true) }, 2000);
+            }
+        } else if (window.scrollTop > 1) {
+            if (page != children.length - 1) {
+                console.log("scrolling down");
+                setPage(page + 1);
+                setReady(false);
+                timeout = setTimeout(() => { setReady(true) }, 2000);
+            }
+        }
 
+        window.scrollTo(0, 1);
     }
 
-    if (props.expandable) {
-        function open() {
-            if (!isReady) {
-                return;
-            }
-            props.setFocus(true);
-
-            setReady(false);
-            setContent(props.children);
-            console.log("hi")
-            overlay.current.className = "cover hide";
-            top.current.className = "overlay topOpen";
-            bot.current.className = "overlay bottomOpen";
-            card.current.className = "myCard wideCard";
-            timeout = setTimeout(() => {
-                setReady(true);
-            }, 2000)
-        }
-
-        function close() {
-            if (!isReady) {
-                return;
-            }
-            props.setFocus(false);
-
-            setContent('');
-            setReady(false);
-            card.current.className = "myCard smallCard";
-            overlay.current.className = "cover show";
-            bot.current.className = "bottom overlay bottomIdle2";
-            top.current.className = "top overlay topIdle2";
-            timeout = setTimeout(() => {
-                setReady(true);
-            }, 2000)
-        }
-
-        return (
-
-            <div className="myCard smallCard" ref={card} onClick={open} onMouseLeave={close}>
-                {content}
-                <img src={props.coverImg} className="show cover" ref={overlay} />
-                <img src={topL} ref={top} className="top overlay topIdle2" draggable="false" />
-                <img src={bottomR} ref={bot} className="bottom overlay bottomIdle2" draggable="false" />
-            </div>
-
-        );
-    }
-
-    return (
-
-        <div className="myCard wideCard" ref={card}>
-            <img src={topL} ref={top} className="top overlay topIdle" draggable="false" />
-            {props.children}
-            <img src={bottomR} ref={bot} className="bottom overlay bottomIdle" draggable="false" />
+    return <>
+        <Scroll detect={detect} />
+        <div>
+            {children[page]}
         </div>
-
-    );
-
-
+    </>;
 }
 
-Card.defaultProps = {
-    coverImg: placeHolder
-}
-
-function Row(props) {
-
-    const [isFocused, setFocus] = useState(false);
-
-    function createChildren() {
-        var children = React.Children.map(props.children, child => {
-            // Checking isValidElement is the safe way and avoids a typescript
-            // error too.
-            if (React.isValidElement(child)) {
-                return React.cloneElement(child, { hidden: isFocused, setFocus: setFocus });
-            }
-            return child;
-        });
-        return children;
-    }
-
+function Scroll(props) {
     return (
-        <div className="myRow display" id={props.id}>
-            <div className="aspectRatio">
-                <div className="myCardRow">
-                    {createChildren()}
-                </div>
+        <div onScroll={props.detect} style={{ height: "100vh", width: "100vw", overflow: "scroll", position: "absolute", top: 0, left: 0 }}>
+            <div style={{ height: "101vh" }}>
             </div>
         </div>
-    );
+    )
 }
 
-
-
+function Page(props) {
+    console.log(props);
+    return <div className="page">{props.children}</div>
+}
 
 
 render(<>
-    <div id="overfun" style={{ display: "none" }}>
-        <img src={clouds2} className="overfun2"></img>
-        <img src={clouds} className="overfun1"></img>
-    </div>
+    <Web>
+        <Page>
 
-    <div id="overfun2" style={{ display: "none" }}>
-        <img src={clouds2} className="overfunup2"></img>
-        <img src={clouds} className="overfunup1"></img>
-    </div>
+        </Page>
+        <Page>
+            <img src={horizonex} className="pageimg overlay hover1" style={{ transform: "translate(14vw, 13vh) rotate(12deg)", width: "700px" }} />
+            <img src={space1} className="pageimg hover1" />
+            <img src={space2} className="pageimg" />
+            <img src={space3} className="pageimg hover1" />
+            <img src={space4} className="pageimg float1" />
+        </Page>
+    </Web>
 
-    <Row id="home">
-        <Card>
-            <h1>Good Evening こんばんは！ </h1>
-        </Card>
-    </Row>
-    <Row id="webrtc">
-        <Card sm l>
-            <h2>webrtc + three.js</h2>
-            <p>(wip) An online chatroom where users can interact with each other in a 3D environment </p>
-        </Card>
-        <Card expandable coverImg={horizonex}>
-            <iframe id="webrtcFrame" src="https://bluestarburst.github.io/project-horizon/"></iframe>
-        </Card>
-        <Card sm>
-            <h2>smol!</h2>
-        </Card>
-    </Row>
-    <Row id="next">
-        <Card>
-            <h1>Hello!</h1>
-        </Card>
-    </Row>
-    <Row id="schedule">
-        <Card sm l>
-            <h2>yay!</h2>
-        </Card>
-        <Card expandable coverImg={tutorialscheduleex}>
-            <iframe id="webrtcFrame" src="https://bluestarburst.github.io/CSPSchedule/"></iframe>
-        </Card>
-        <Card sm>
-            <h2>Tutorial Schedule!</h2>
-            <p>
-                A virtual calendar that allows students to plan study sessions.
-            </p>
-        </Card>
-    </Row>
 </>, document.getElementById("root"));
 
 
@@ -209,9 +108,7 @@ render(<>
 
 
 
-
-
-
+/*
 
 
 
@@ -564,3 +461,5 @@ function scrollToSetPos(tempPos) {
 }
 
 disableScroll();
+
+*/
