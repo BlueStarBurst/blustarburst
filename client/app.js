@@ -27,15 +27,26 @@ import space2 from './img/new/space2.png'
 import space3 from './img/new/space3.png'
 import space4 from './img/new/space4.png'
 
+var timeout = ''
+
+
 function Web(props) {
-    var children = React.Children.toArray(props.children);
 
     const [page, setPage] = useState(0);
     const [isReady, setReady] = useState(true);
+    const [children, setChildren] = useState(React.Children.toArray(props.children));
 
     var timeout = ''
 
+    useEffect(() => {
+        var temp = React.Children.toArray(props.children);
+        temp[0] = React.cloneElement(temp[0], { open: true })
+        setChildren(temp);
+    }, [])
+
     function detect(e) {
+
+        //console.log(children[page]);
 
         const window = e.target;
 
@@ -47,16 +58,24 @@ function Web(props) {
         console.log(window.scrollTop);
         if (window.scrollTop < 1) {
             if (page != 0) {
+                var temp = React.Children.toArray(props.children);
+                temp[page] = React.cloneElement(temp[page], { open: false })
                 console.log("scrolling up");
                 setPage(page - 1);
                 setReady(false);
+                temp[page - 1] = React.cloneElement(temp[page - 1], { open: true })
+                setChildren(temp);
                 timeout = setTimeout(() => { setReady(true) }, 2000);
             }
         } else if (window.scrollTop > 1) {
             if (page != children.length - 1) {
+                var temp = React.Children.toArray(props.children);
+                temp[page] = React.cloneElement(temp[page], { open: false })
                 console.log("scrolling down");
                 setPage(page + 1);
                 setReady(false);
+                temp[page + 1] = React.cloneElement(temp[page + 1], { open: true })
+                setChildren(temp);
                 timeout = setTimeout(() => { setReady(true) }, 2000);
             }
         }
@@ -65,40 +84,143 @@ function Web(props) {
     }
 
     return <>
-        <Scroll detect={detect} />
-        <div>
-            {children[page]}
+        <div onScroll={detect} style={{ height: "100vh", width: "100vw", overflow: "scroll", position: "fixed", top: 0, left: 0, zIndex: 10000 }} >
+            {children}
+            <div style={{ height: "101vh" }}></div>
         </div>
     </>;
 }
 
-function Scroll(props) {
+function Space(props) {
+
+    const container = useRef(null)
+    const page = useRef(null)
+    const overlay = useRef(null)
+    const [show, setShow] = useState("none");
+    const delay = props.delay || 1.5;
+
+    useEffect(() => {
+        clearTimeout(timeout);
+        console.log(props.open);
+        if (props.open) {
+            setShow("block")
+            container.current.style.display = "none";
+            overlay.current.style.display = "block";
+            page.current.className = "page1";
+            timeout = setTimeout(() => {
+                container.current.style.display = "flex";
+            }, delay * 1000)
+        } else if (props.open == false) {
+            overlay.current.style.display = "none";
+            page.current.className = "page1c";
+            timeout = setTimeout(() => {
+                container.current.style.display = "none";
+                setShow("none")
+            }, 5000)
+        }
+    }, [props])
+
+    function closeOut() {
+        return (
+            <>
+                <div className="overlayHolder space1c">
+                    <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(36%, 28%) rotate(12deg)", width: "700px" }} />
+                </div>
+                <img src={space1} className="pageimg space12c" />
+                <img src={space2} className="pageimg space2c" />
+                <img src={space3} className="pageimg space1c" />
+                <img src={space4} className="pageimg space3c" />
+            </>
+        )
+    }
+
+    function openIn() {
+        return (
+            <>
+                <div className="overlayHolder space1">
+                    <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(36%, 28%) rotate(12deg)", width: "700px" }} />
+                </div>
+                <img src={space1} className="pageimg space12" />
+                <img src={space2} className="pageimg space2" />
+                <img src={space3} className="pageimg space1" />
+                <img src={space4} className="pageimg space3" />
+            </>
+        )
+    }
+
     return (
-        <div onScroll={props.detect} style={{ height: "100vh", width: "100vw", overflow: "scroll", position: "absolute", top: 0, left: 0 }}>
-            <div style={{ height: "101vh" }}>
+        <div ref={page} style={{ display: show }}>
+            <div ref={overlay} className="openAnim">
+                <img src={clouds} className="pageimg cloudsRIn" />
+                <img src={clouds2} className="pageimg cloudsLIn" />
+            </div>
+            <div ref={container} style={props.style} className={"page"}>
+                {(props.open) ? openIn() : closeOut()}
             </div>
         </div>
     )
 }
 
-function Page(props) {
-    console.log(props);
-    return <div className="page">{props.children}</div>
+function Title(props) {
+
+    const container = useRef(null)
+    const overlay = useRef(null)
+    const [show, setShow] = useState("none");
+    const delay = props.delay || 0;
+
+
+    useEffect(() => {
+        clearTimeout(timeout)
+        console.log(props.open);
+        if (props.open) {
+            setShow("block")
+            overlay.current.style.display = "block";
+            container.current.style.display = "flex";
+        } else if (props.open == false) {
+            overlay.current.style.display = "none";
+            timeout = setTimeout(() => {
+                container.current.style.display = "none";
+                setShow("none")
+            }, 5000)
+        }
+    }, [props])
+
+    function closeOut() {
+        return (
+            <>
+                <h1>こんばんは</h1>
+            </>
+        )
+    }
+
+    function openIn() {
+        return (
+            <>
+                <h1>こんばんは</h1>
+            </>
+        )
+    }
+
+    return (
+        <div className={"page0"} style={{ display: show }}>
+            <div ref={overlay} className="openAnim">
+                <img src={clouds} className="pageimg cloudsRIn" />
+                <img src={clouds2} className="pageimg cloudsLIn" />
+            </div>
+            <div ref={container} style={props.style} className={"page"}>
+                {(props.open) ? openIn() : closeOut()}
+            </div>
+
+        </div>
+    )
 }
 
 
 render(<>
     <Web>
-        <Page>
+        <Title />
+        <Space />
 
-        </Page>
-        <Page>
-            <img src={horizonex} className="pageimg overlay hover1" style={{ transform: "translate(14vw, 13vh) rotate(12deg)", width: "700px" }} />
-            <img src={space1} className="pageimg hover1" />
-            <img src={space2} className="pageimg" />
-            <img src={space3} className="pageimg hover1" />
-            <img src={space4} className="pageimg float1" />
-        </Page>
     </Web>
 
 </>, document.getElementById("root"));

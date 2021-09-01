@@ -15,16 +15,35 @@ html {
   align-items: center;
   width: 100vw;
   height: 100vh;
-  position: 'fixed';
+  position: 'absolute';
   top: 0;
   left: 0;
   display: 'flex';
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: visible;
+}
+
+.openAnim {
+  position: absolute;
+  width: 100vw;
+  z-index: 2;
 }
 
 .page img {
   position: absolute;
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: visible;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+}
+
+.openAnim img {
+  position: absolute;
+  overflow-y: hidden;
+  overflow-x: visible;
   top: 0;
   left: 0;
   bottom: 0;
@@ -35,6 +54,18 @@ html {
 .pageimg {
   pointer-events: none;
   overflow: hidden;
+}
+
+.overlayHolder {
+  width: 1910px;
+  height: 1070px;
+  position: absolute;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
 }
 
 .overlay {
@@ -50,39 +81,220 @@ html {
   opacity: 0.75;
 }
 
-.float1 {
-  animation: float1 16s infinite;
-  animation-timing-function: ease-in-out;
-}
-
-.hover1 {
-  animation: hover1 16s infinite;
-  animation-timing-function: ease-in-out;
-}
-
 @keyframes float1 {
   0% {
-    transform: translate(1vw, 2vh);
+    transform: translate(0vw, 0vh);
   }
   33% {
-    transform: translate(-1vw, 0vh);
+    transform: translate(-1vw, 2vh);
   }
   66% {
-    transform: translate(2vw, -1vh);
+    transform: translate(2vw, 3vh);
   }
   100% {
-    transform: translate(1vw, 2vh);
+    transform: translate(0vw, 0vh);
   }
 }
 
 @keyframes hover1 {
   0% {
-    top: -3vh;
+    top: 0;
   }
   50% {
-    top: 3vh;
+    top: 6vh;
   }
   100% {
-    top: -3vh;
+    top: 0vh;
+  }
+}
+
+@keyframes upIn {
+  0% {
+    transform: translateY(100vh);
+  }
+  100% {
+    transform: translateY(0vh);
+  }
+}
+
+@keyframes space1 {
+  0% {
+    transform: translate(36%, 100vh) rotate(12deg);
+  }
+  100% {
+    transform: translate(36%, 28%) rotate(12deg);
+  }
+}
+
+@keyframes page1 {
+  0% {
+    background-color: transparent;
+  }
+  100% {
+    background-color: #9e9e9e;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.space1 {
+  animation: upIn 3s ease-in-out, hover1 16s infinite ease-in-out;
+}
+
+.space12 {
+  animation: upIn 3s ease-in-out, fadein 5s, hover1 16s infinite ease-in-out;
+  background-color: transparent;
+}
+
+.spaceOverlay {
+  animation: space1 3s ease-in-out, hover1 16s infinite ease-in-out;
+}
+
+.space2 {
+  animation: upIn 2.5s ease-in-out;
+}
+
+.space3 {
+  animation: upIn 3.65s ease-in-out, float1 16s infinite 3.65s ease-in-out;
+}
+
+.page1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  animation: page1 1.75s;
+  background-color: #9e9e9e;
+}
+
+.page1c {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  animation: page1c 3s;
+  background-color: transparent;
+}
+
+.cloudsLIn {
+  animation: cloudsLIn 2s ease-in-out 0.75s;
+  opacity: 0;
+}
+
+@keyframes cloudsLIn {
+  0% {
+    top: -100vh;
+    left: -30vw;
+    opacity: 1;
+  }
+  100% {
+    top: 200vh;
+    left: -40vw;
+    opacity: 1;
+  }
+}
+
+.cloudsRIn {
+  animation: cloudsRIn 2s ease-in-out 0.75s;
+  opacity: 0;
+}
+
+@keyframes cloudsRIn {
+  0% {
+    top: -100vh;
+    right: -30vw;
+    opacity: 1;
+  }
+  100% {
+    top: 200vh;
+    right: -40vw;
+    opacity: 1;
+  }
+}
+
+.space1c {
+  animation: downOut 3s ease-in-out, hover1 16s infinite ease-in-out;
+  opacity: 0;
+}
+
+.space12c {
+  animation: downFadeOut 3s ease-in-out, hover1 16s infinite ease-in-out;
+  background-color: transparent;
+  opacity: 0;
+}
+
+.space2c {
+  animation: downOut 2.5s ease-in-out;
+  opacity: 0;
+}
+
+.space3c {
+  animation: downOut 3.65s ease-in-out;
+  opacity: 0;
+}
+
+@keyframes downOut {
+  0% {
+    transform: translateY(0vh);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 1;
+  }
+}
+
+@keyframes downFadeOut {
+  0% {
+    transform: translateY(0vh);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes space1c {
+  0% {
+    transform: translate(36%, 28%) rotate(12deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(36%, 100vh) rotate(12deg);
+    opacity: 1;
+  }
+}
+
+@keyframes page1c {
+  0% {
+    background-color: #9e9e9e;
+    opacity: 1;
+  }
+  50% {
+    background-color: #9e9e9e;
+    opacity: 1;
+  }
+  100% {
+    background-color: transparent;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
