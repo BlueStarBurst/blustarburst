@@ -27,21 +27,33 @@ import space2 from './img/new/space2.png'
 import space3 from './img/new/space3.png'
 import space4 from './img/new/space4.png'
 
-var timeout = ''
+import city1 from './img/new/city1.png'
+import city2 from './img/new/city2.png'
+import city3 from './img/new/city3.png'
+import city4 from './img/new/city4.png'
+import city5 from './img/new/city5.png'
 
+var timeout = ''
 
 function Web(props) {
 
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(JSON.parse(localStorage.getItem("page")) || 0);
     const [isReady, setReady] = useState(true);
     const [children, setChildren] = useState(React.Children.toArray(props.children));
+
+    const scroller = useRef(null)
 
     var timeout = ''
 
     useEffect(() => {
         var temp = React.Children.toArray(props.children);
-        temp[0] = React.cloneElement(temp[0], { open: true })
+        temp[page] = React.cloneElement(temp[page], { open: true })
         setChildren(temp);
+
+        setTimeout(() => {
+            scroller.current.scrollTop = 100;
+            console.log(scroller.current.scrollTop)
+        }, 1000)
     }, [])
 
     function detect(e) {
@@ -61,22 +73,24 @@ function Web(props) {
                 var temp = React.Children.toArray(props.children);
                 temp[page] = React.cloneElement(temp[page], { open: false })
                 console.log("scrolling up");
+                localStorage.setItem("page", JSON.stringify(page - 1))
                 setPage(page - 1);
                 setReady(false);
                 temp[page - 1] = React.cloneElement(temp[page - 1], { open: true })
                 setChildren(temp);
-                timeout = setTimeout(() => { setReady(true) }, 2000);
+                timeout = setTimeout(() => { setReady(true) }, 5000);
             }
         } else if (window.scrollTop > 1) {
             if (page != children.length - 1) {
                 var temp = React.Children.toArray(props.children);
                 temp[page] = React.cloneElement(temp[page], { open: false })
                 console.log("scrolling down");
+                localStorage.setItem("page", JSON.stringify(page + 1))
                 setPage(page + 1);
                 setReady(false);
                 temp[page + 1] = React.cloneElement(temp[page + 1], { open: true })
                 setChildren(temp);
-                timeout = setTimeout(() => { setReady(true) }, 2000);
+                timeout = setTimeout(() => { setReady(true) }, 5000);
             }
         }
 
@@ -86,9 +100,81 @@ function Web(props) {
     return <>
         <div onScroll={detect} style={{ height: "100vh", width: "100vw", overflow: "scroll", position: "fixed", top: 0, left: 0, zIndex: 10000 }} >
             {children}
-            <div style={{ height: "101vh" }}></div>
+            <div ref={scroller} id="scroller" style={{ height: "101vh", overflowY: "scroll" }}></div>
         </div>
     </>;
+}
+
+function City(props) {
+
+    const container = useRef(null)
+    const page = useRef(null)
+    const overlay = useRef(null)
+    const [show, setShow] = useState("none");
+    const delay = props.delay || 1.5;
+
+    useEffect(() => {
+        console.log(props.open);
+        if (props.open) {
+            page.current.style.display = "block";
+            container.current.style.display = "none";
+            overlay.current.style.display = "block";
+            page.current.className = "page2";
+            setTimeout(() => {
+                container.current.style.display = "flex";
+            }, delay * 1000)
+        } else if (props.open == false) {
+            overlay.current.style.display = "none";
+            page.current.className = "page2c";
+            setTimeout(() => {
+                container.current.style.display = "none";
+                page.current.style.display = "none";
+            }, 5000)
+        }
+    }, [props])
+
+    function closeOut() {
+        return (
+            <>
+                <div className="overlayHolder overlayc">
+                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(40%, 28%)", width: "800px" }} />
+                </div>
+                <img src={city5} className="pageimg city5c" />
+                <img src={city4} className="pageimg city3c" />
+                <img src={city3} className="pageimg city2c" />
+                <img src={city1} className="pageimg city1c" />
+                <img src={city2} className="pageimg city2c" />
+            </>
+        )
+    }
+
+    function openIn() {
+        return (
+            <>
+                <div className="overlayHolder city1">
+                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(40%, 28%)", width: "800px" }} />
+                </div>
+                <img src={city5} className="pageimg city1" />
+                <img src={city4} className="pageimg city3" />
+                <img src={city3} className="pageimg city2" />
+                <img src={city1} className="pageimg city1" />
+                <img src={city2} className="pageimg city2" />
+
+            </>
+        )
+    }
+
+    return (
+        <div ref={page} style={{ display: "none" }}>
+            <div ref={overlay} className="openAnim">
+                <img src={clouds} className="pageimg cloudsRIn" />
+                <img src={clouds2} className="pageimg cloudsLIn" />
+            </div>
+            <div ref={container} style={props.style} className={"page"}>
+                {(props.open) ? openIn() : closeOut()}
+            </div>
+        </div>
+    )
 }
 
 function Space(props) {
@@ -100,22 +186,21 @@ function Space(props) {
     const delay = props.delay || 1.5;
 
     useEffect(() => {
-        clearTimeout(timeout);
         console.log(props.open);
         if (props.open) {
-            setShow("block")
+            page.current.style.display = "block";
             container.current.style.display = "none";
             overlay.current.style.display = "block";
             page.current.className = "page1";
-            timeout = setTimeout(() => {
+            setTimeout(() => {
                 container.current.style.display = "flex";
             }, delay * 1000)
         } else if (props.open == false) {
             overlay.current.style.display = "none";
             page.current.className = "page1c";
-            timeout = setTimeout(() => {
+            setTimeout(() => {
                 container.current.style.display = "none";
-                setShow("none")
+                page.current.style.display = "none";
             }, 5000)
         }
     }, [props])
@@ -123,7 +208,7 @@ function Space(props) {
     function closeOut() {
         return (
             <>
-                <div className="overlayHolder space1c">
+                <div className="overlayHolder overlayc">
                     <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(36%, 28%) rotate(12deg)", width: "700px" }} />
                 </div>
                 <img src={space1} className="pageimg space12c" />
@@ -149,7 +234,7 @@ function Space(props) {
     }
 
     return (
-        <div ref={page} style={{ display: show }}>
+        <div ref={page} style={{ display: "none" }} >
             <div ref={overlay} className="openAnim">
                 <img src={clouds} className="pageimg cloudsRIn" />
                 <img src={clouds2} className="pageimg cloudsLIn" />
@@ -165,22 +250,22 @@ function Title(props) {
 
     const container = useRef(null)
     const overlay = useRef(null)
+    const page = useRef(null)
     const [show, setShow] = useState("none");
     const delay = props.delay || 0;
 
 
     useEffect(() => {
-        clearTimeout(timeout)
         console.log(props.open);
         if (props.open) {
-            setShow("block")
+            page.current.style.display = "block";
             overlay.current.style.display = "block";
             container.current.style.display = "flex";
         } else if (props.open == false) {
             overlay.current.style.display = "none";
-            timeout = setTimeout(() => {
+            setTimeout(() => {
                 container.current.style.display = "none";
-                setShow("none")
+                page.current.style.display = "none";
             }, 5000)
         }
     }, [props])
@@ -202,7 +287,7 @@ function Title(props) {
     }
 
     return (
-        <div className={"page0"} style={{ display: show }}>
+        <div className={"page0"} ref={page} style={{ display: "none" }}>
             <div ref={overlay} className="openAnim">
                 <img src={clouds} className="pageimg cloudsRIn" />
                 <img src={clouds2} className="pageimg cloudsLIn" />
@@ -220,6 +305,7 @@ render(<>
     <Web>
         <Title />
         <Space />
+        <City />
 
     </Web>
 

@@ -71,14 +71,14 @@ html {
 .overlay {
   pointer-events: all;
   overflow: hidden;
-  opacity: 0.25;
+  opacity: 0.75;
   transition: opacity 1s;
 }
 
 .overlay:hover {
   pointer-events: all;
   cursor: pointer;
-  opacity: 0.75;
+  opacity: 1;
 }
 
 @keyframes float1 {
@@ -135,6 +135,45 @@ html {
   }
 }
 
+@keyframes page1c {
+  0% {
+    background-color: #9e9e9e;
+    opacity: 1;
+  }
+  50% {
+    background-color: #9e9e9e;
+    opacity: 1;
+  }
+  100% {
+    background-color: transparent;
+    opacity: 1;
+  }
+}
+
+@keyframes page2 {
+  0% {
+    background-color: transparent;
+  }
+  100% {
+    background-color: #f7c6f9;
+  }
+}
+
+@keyframes page2c {
+  0% {
+    background-color: #f7c6f9;
+    opacity: 1;
+  }
+  50% {
+    background-color: #f7c6f9;
+    opacity: 1;
+  }
+  100% {
+    background-color: transparent;
+    opacity: 1;
+  }
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;
@@ -182,6 +221,26 @@ html {
   height: 100vh;
   width: 100vw;
   animation: page1c 3s;
+  background-color: transparent;
+}
+
+.page2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  animation: page2 1.75s;
+  background-color: #f7c6f9;
+}
+
+.page2c {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  animation: page2c 3s;
   background-color: transparent;
 }
 
@@ -264,6 +323,20 @@ html {
   }
 }
 
+@keyframes downFadeOutOverlay {
+  0% {
+    transform: translateY(0vh);
+    opacity: 1;
+  }
+  40% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
 @keyframes space1c {
   0% {
     transform: translate(36%, 28%) rotate(12deg);
@@ -275,21 +348,6 @@ html {
   }
 }
 
-@keyframes page1c {
-  0% {
-    background-color: #9e9e9e;
-    opacity: 1;
-  }
-  50% {
-    background-color: #9e9e9e;
-    opacity: 1;
-  }
-  100% {
-    background-color: transparent;
-    opacity: 1;
-  }
-}
-
 @keyframes fadeOut {
   0% {
     opacity: 1;
@@ -297,4 +355,55 @@ html {
   100% {
     opacity: 0;
   }
+}
+
+@keyframes hover2 {
+  0% {
+    top: 0;
+  }
+  50% {
+    top: 12vh;
+  }
+  100% {
+    top: 0vh;
+  }
+}
+
+.city1 {
+  animation: upIn 2.975s ease-in-out, hover1 16s infinite ease-in-out;
+}
+
+.city2 {
+  animation: upIn 3s ease-in-out, hover1 14s infinite ease-in-out 1s;
+}
+
+.city3 {
+  animation: upIn 3.1s ease-in-out, hover1 15s infinite ease-in-out 0.5s;
+}
+
+.city1c {
+  animation: downOut 3.2s ease-in-out;
+  opacity: 0;
+}
+
+.city2c {
+  animation: downOut 3s ease-in-out;
+  opacity: 0;
+}
+
+.city3c {
+  animation: downOut 2.75s ease-in-out;
+  opacity: 0;
+}
+
+.city5c {
+  animation: downFadeOut 3s ease-in-out;
+  background-color: transparent;
+  opacity: 0;
+}
+
+.overlayc {
+  animation: downFadeOutOverlay 3s ease-in-out;
+  background-color: transparent;
+  opacity: 0;
 }
