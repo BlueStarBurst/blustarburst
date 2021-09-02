@@ -52,7 +52,7 @@ var ERRORS = (_a$1 = {},
 var ERROR_FACTORY = new _firebase_util__WEBPACK_IMPORTED_MODULE_0__.ErrorFactory('app', 'Firebase', ERRORS);
 
 var name$c = "@firebase/app";
-var version$1 = "0.6.28";
+var version$1 = "0.6.30";
 
 var name$b = "@firebase/analytics";
 
@@ -292,7 +292,7 @@ var FirebaseAppImpl = /** @class */ (function () {
     FirebaseAppImpl.prototype.delete ||
     console.log('dc');
 
-var version = "8.7.0";
+var version = "8.10.0";
 
 /**
  * @license
@@ -788,6 +788,7 @@ var Provider = /** @class */ (function () {
         this.component = null;
         this.instances = new Map();
         this.instancesDeferred = new Map();
+        this.instancesOptions = new Map();
         this.onInitCallbacks = new Map();
     }
     /**
@@ -909,6 +910,7 @@ var Provider = /** @class */ (function () {
     Provider.prototype.clearInstance = function (identifier) {
         if (identifier === void 0) { identifier = DEFAULT_ENTRY_NAME; }
         this.instancesDeferred.delete(identifier);
+        this.instancesOptions.delete(identifier);
         this.instances.delete(identifier);
     };
     // app.delete() will call this method on every provider to delete the services
@@ -940,6 +942,10 @@ var Provider = /** @class */ (function () {
     Provider.prototype.isInitialized = function (identifier) {
         if (identifier === void 0) { identifier = DEFAULT_ENTRY_NAME; }
         return this.instances.has(identifier);
+    };
+    Provider.prototype.getOptions = function (identifier) {
+        if (identifier === void 0) { identifier = DEFAULT_ENTRY_NAME; }
+        return this.instancesOptions.get(identifier) || {};
     };
     Provider.prototype.initialize = function (opts) {
         var e_2, _a;
@@ -1035,6 +1041,7 @@ var Provider = /** @class */ (function () {
                 options: options
             });
             this.instances.set(instanceIdentifier, instance);
+            this.instancesOptions.set(instanceIdentifier, options);
             /**
              * Invoke onInit listeners.
              * Note this.component.onInstanceCreated is different, which is used by the component creator,
@@ -1482,12 +1489,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "base64": () => (/* binding */ base64),
 /* harmony export */   "base64Decode": () => (/* binding */ base64Decode),
 /* harmony export */   "base64Encode": () => (/* binding */ base64Encode),
+/* harmony export */   "base64urlEncodeWithoutPadding": () => (/* binding */ base64urlEncodeWithoutPadding),
 /* harmony export */   "calculateBackoffMillis": () => (/* binding */ calculateBackoffMillis),
 /* harmony export */   "contains": () => (/* binding */ contains),
 /* harmony export */   "createMockUserToken": () => (/* binding */ createMockUserToken),
 /* harmony export */   "createSubscribe": () => (/* binding */ createSubscribe),
 /* harmony export */   "decode": () => (/* binding */ decode),
 /* harmony export */   "deepCopy": () => (/* binding */ deepCopy),
+/* harmony export */   "deepEqual": () => (/* binding */ deepEqual),
 /* harmony export */   "deepExtend": () => (/* binding */ deepExtend),
 /* harmony export */   "errorPrefix": () => (/* binding */ errorPrefix),
 /* harmony export */   "extractQuerystring": () => (/* binding */ extractQuerystring),
@@ -1517,7 +1526,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "querystringDecode": () => (/* binding */ querystringDecode),
 /* harmony export */   "safeGet": () => (/* binding */ safeGet),
 /* harmony export */   "stringLength": () => (/* binding */ stringLength),
-/* harmony export */   "stringToByteArray": () => (/* binding */ stringToByteArray$1),
+/* harmony export */   "stringToByteArray": () => (/* binding */ stringToByteArray),
 /* harmony export */   "stringify": () => (/* binding */ stringify),
 /* harmony export */   "validateArgCount": () => (/* binding */ validateArgCount),
 /* harmony export */   "validateCallback": () => (/* binding */ validateCallback),
@@ -1612,7 +1621,7 @@ var assertionError = function (message) {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var stringToByteArray = function (str) {
+var stringToByteArray$1 = function (str) {
     // TODO(user): Use native implementations if/when available
     var out = [];
     var p = 0;
@@ -1779,7 +1788,7 @@ var base64 = {
         if (this.HAS_NATIVE_SUPPORT && !webSafe) {
             return btoa(input);
         }
-        return this.encodeByteArray(stringToByteArray(input), webSafe);
+        return this.encodeByteArray(stringToByteArray$1(input), webSafe);
     },
     /**
      * Base64-decode a string.
@@ -1875,8 +1884,16 @@ var base64 = {
  * URL-safe base64 encoding
  */
 var base64Encode = function (str) {
-    var utf8Bytes = stringToByteArray(str);
+    var utf8Bytes = stringToByteArray$1(str);
     return base64.encodeByteArray(utf8Bytes, true);
+};
+/**
+ * URL-safe base64 encoding (without "." padding in the end).
+ * e.g. Used in JSON Web Token (JWT) parts.
+ */
+var base64urlEncodeWithoutPadding = function (str) {
+    // Use base64url encoding and remove padding in the end (dot characters).
+    return base64Encode(str).replace(/\./g, '');
 };
 /**
  * URL-safe base64 decoding
@@ -2067,8 +2084,8 @@ function createMockUserToken(token, projectId) {
     // Unsecured JWTs use the empty string as a signature.
     var signature = '';
     return [
-        base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-        base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
+        base64urlEncodeWithoutPadding(JSON.stringify(header)),
+        base64urlEncodeWithoutPadding(JSON.stringify(payload)),
         signature
     ].join('.');
 }
@@ -2504,6 +2521,42 @@ function map(obj, fn, contextObj) {
         }
     }
     return res;
+}
+/**
+ * Deep equal two objects. Support Arrays and Objects.
+ */
+function deepEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    var aKeys = Object.keys(a);
+    var bKeys = Object.keys(b);
+    for (var _i = 0, aKeys_1 = aKeys; _i < aKeys_1.length; _i++) {
+        var k = aKeys_1[_i];
+        if (!bKeys.includes(k)) {
+            return false;
+        }
+        var aProp = a[k];
+        var bProp = b[k];
+        if (isObject(aProp) && isObject(bProp)) {
+            if (!deepEqual(aProp, bProp)) {
+                return false;
+            }
+        }
+        else if (aProp !== bProp) {
+            return false;
+        }
+    }
+    for (var _a = 0, bKeys_1 = bKeys; _a < bKeys_1.length; _a++) {
+        var k = bKeys_1[_a];
+        if (!aKeys.includes(k)) {
+            return false;
+        }
+    }
+    return true;
+}
+function isObject(thing) {
+    return thing !== null && typeof thing === 'object';
 }
 
 /**
@@ -3169,7 +3222,7 @@ function validateContextObject(fnName, argumentName, context, optional) {
  * @param {string} str
  * @return {Array}
  */
-var stringToByteArray$1 = function (str) {
+var stringToByteArray = function (str) {
     var out = [];
     var p = 0;
     for (var i = 0; i < str.length; i++) {
@@ -3391,7 +3444,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "html {\r\n  overflow: hidden;\r\n}\r\n\r\n::-webkit-scrollbar {\r\n  display: none;\r\n}\r\n\r\n#root {\r\n  overflow: hidden;\r\n}\r\n\r\n.page {\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: 100vw;\r\n  height: 100vh;\r\n  position: 'fixed';\r\n  top: 0;\r\n  left: 0;\r\n  display: 'flex';\r\n  overflow: hidden;\r\n}\r\n\r\n.page img {\r\n  position: absolute;\r\n  overflow: hidden;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.pageimg {\r\n  pointer-events: none;\r\n  overflow: hidden;\r\n}\r\n\r\n.overlay {\r\n  pointer-events: all;\r\n  overflow: hidden;\r\n  opacity: 0.25;\r\n  transition: opacity 1s;\r\n}\r\n\r\n.overlay:hover {\r\n  pointer-events: all;\r\n  cursor: pointer;\r\n  opacity: 0.75;\r\n}\r\n\r\n.float1 {\r\n  animation: float1 16s infinite;\r\n  animation-timing-function: ease-in-out;\r\n}\r\n\r\n.hover1 {\r\n  animation: hover1 16s infinite;\r\n  animation-timing-function: ease-in-out;\r\n}\r\n\r\n@keyframes float1 {\r\n  0% {\r\n    transform: translate(1vw, 2vh);\r\n  }\r\n  33% {\r\n    transform: translate(-1vw, 0vh);\r\n  }\r\n  66% {\r\n    transform: translate(2vw, -1vh);\r\n  }\r\n  100% {\r\n    transform: translate(1vw, 2vh);\r\n  }\r\n}\r\n\r\n@keyframes hover1 {\r\n  0% {\r\n    top: -3vh;\r\n  }\r\n  50% {\r\n    top: 3vh;\r\n  }\r\n  100% {\r\n    top: -3vh;\r\n  }\r\n}\r\n", "",{"version":3,"sources":["webpack://./client/style.css"],"names":[],"mappings":"AAAA;EACE,gBAAgB;AAClB;;AAEA;EACE,aAAa;AACf;;AAEA;EACE,gBAAgB;AAClB;;AAEA;EACE,uBAAuB;EACvB,mBAAmB;EACnB,YAAY;EACZ,aAAa;EACb,iBAAiB;EACjB,MAAM;EACN,OAAO;EACP,eAAe;EACf,gBAAgB;AAClB;;AAEA;EACE,kBAAkB;EAClB,gBAAgB;EAChB,MAAM;EACN,OAAO;EACP,SAAS;EACT,QAAQ;EACR,YAAY;AACd;;AAEA;EACE,oBAAoB;EACpB,gBAAgB;AAClB;;AAEA;EACE,mBAAmB;EACnB,gBAAgB;EAChB,aAAa;EACb,sBAAsB;AACxB;;AAEA;EACE,mBAAmB;EACnB,eAAe;EACf,aAAa;AACf;;AAEA;EACE,8BAA8B;EAC9B,sCAAsC;AACxC;;AAEA;EACE,8BAA8B;EAC9B,sCAAsC;AACxC;;AAEA;EACE;IACE,8BAA8B;EAChC;EACA;IACE,+BAA+B;EACjC;EACA;IACE,+BAA+B;EACjC;EACA;IACE,8BAA8B;EAChC;AACF;;AAEA;EACE;IACE,SAAS;EACX;EACA;IACE,QAAQ;EACV;EACA;IACE,SAAS;EACX;AACF","sourcesContent":["html {\r\n  overflow: hidden;\r\n}\r\n\r\n::-webkit-scrollbar {\r\n  display: none;\r\n}\r\n\r\n#root {\r\n  overflow: hidden;\r\n}\r\n\r\n.page {\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: 100vw;\r\n  height: 100vh;\r\n  position: 'fixed';\r\n  top: 0;\r\n  left: 0;\r\n  display: 'flex';\r\n  overflow: hidden;\r\n}\r\n\r\n.page img {\r\n  position: absolute;\r\n  overflow: hidden;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.pageimg {\r\n  pointer-events: none;\r\n  overflow: hidden;\r\n}\r\n\r\n.overlay {\r\n  pointer-events: all;\r\n  overflow: hidden;\r\n  opacity: 0.25;\r\n  transition: opacity 1s;\r\n}\r\n\r\n.overlay:hover {\r\n  pointer-events: all;\r\n  cursor: pointer;\r\n  opacity: 0.75;\r\n}\r\n\r\n.float1 {\r\n  animation: float1 16s infinite;\r\n  animation-timing-function: ease-in-out;\r\n}\r\n\r\n.hover1 {\r\n  animation: hover1 16s infinite;\r\n  animation-timing-function: ease-in-out;\r\n}\r\n\r\n@keyframes float1 {\r\n  0% {\r\n    transform: translate(1vw, 2vh);\r\n  }\r\n  33% {\r\n    transform: translate(-1vw, 0vh);\r\n  }\r\n  66% {\r\n    transform: translate(2vw, -1vh);\r\n  }\r\n  100% {\r\n    transform: translate(1vw, 2vh);\r\n  }\r\n}\r\n\r\n@keyframes hover1 {\r\n  0% {\r\n    top: -3vh;\r\n  }\r\n  50% {\r\n    top: 3vh;\r\n  }\r\n  100% {\r\n    top: -3vh;\r\n  }\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "html {\r\n  overflow: hidden;\r\n}\r\n\r\n::-webkit-scrollbar {\r\n  display: none;\r\n}\r\n\r\n#root {\r\n  overflow: hidden;\r\n}\r\n\r\n.page {\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: 100vw;\r\n  height: 100vh;\r\n  position: 'absolute';\r\n  top: 0;\r\n  left: 0;\r\n  display: 'flex';\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n}\r\n\r\n.openAnim {\r\n  position: absolute;\r\n  width: 100vw;\r\n  z-index: 2;\r\n}\r\n\r\n.page img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.openAnim img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.pageimg {\r\n  pointer-events: none;\r\n  overflow: hidden;\r\n}\r\n\r\n.overlayHolder {\r\n  width: 1910px;\r\n  height: 1070px;\r\n  position: absolute;\r\n  overflow: hidden;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.overlay {\r\n  pointer-events: all;\r\n  overflow: hidden;\r\n  opacity: 0.75;\r\n  transition: opacity 1s;\r\n}\r\n\r\n.overlay:hover {\r\n  pointer-events: all;\r\n  cursor: pointer;\r\n  opacity: 1;\r\n}\r\n\r\n@keyframes float1 {\r\n  0% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n  33% {\r\n    transform: translate(-1vw, 2vh);\r\n  }\r\n  66% {\r\n    transform: translate(2vw, 3vh);\r\n  }\r\n  100% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n}\r\n\r\n@keyframes hover1 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 6vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n@keyframes upIn {\r\n  0% {\r\n    transform: translateY(100vh);\r\n  }\r\n  100% {\r\n    transform: translateY(0vh);\r\n  }\r\n}\r\n\r\n@keyframes space1 {\r\n  0% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n  }\r\n  100% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n  }\r\n}\r\n\r\n@keyframes page1 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #9e9e9e;\r\n  }\r\n}\r\n\r\n@keyframes page1c {\r\n  0% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes page2 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #f7c6f9;\r\n  }\r\n}\r\n\r\n@keyframes page2c {\r\n  0% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeIn {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1 {\r\n  animation: upIn 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space12 {\r\n  animation: upIn 3s ease-in-out, fadein 5s, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n}\r\n\r\n.spaceOverlay {\r\n  animation: space1 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space2 {\r\n  animation: upIn 2.5s ease-in-out;\r\n}\r\n\r\n.space3 {\r\n  animation: upIn 3.65s ease-in-out, float1 16s infinite 3.65s ease-in-out;\r\n}\r\n\r\n.page1 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1 1.75s;\r\n  background-color: #9e9e9e;\r\n}\r\n\r\n.page1c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.page2 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2 1.75s;\r\n  background-color: #f7c6f9;\r\n}\r\n\r\n.page2c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.cloudsLIn {\r\n  animation: cloudsLIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsLIn {\r\n  0% {\r\n    top: -100vh;\r\n    left: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    left: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.cloudsRIn {\r\n  animation: cloudsRIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsRIn {\r\n  0% {\r\n    top: -100vh;\r\n    right: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    right: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1c {\r\n  animation: downOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space12c {\r\n  animation: downFadeOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.space2c {\r\n  animation: downOut 2.5s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space3c {\r\n  animation: downOut 3.65s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes downOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOutOverlay {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  40% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes space1c {\r\n  0% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes hover2 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 12vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n.city1 {\r\n  animation: upIn 2.975s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.city2 {\r\n  animation: upIn 3s ease-in-out, hover1 14s infinite ease-in-out 1s;\r\n}\r\n\r\n.city3 {\r\n  animation: upIn 3.1s ease-in-out, hover1 15s infinite ease-in-out 0.5s;\r\n}\r\n\r\n.city1c {\r\n  animation: downOut 3.2s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city2c {\r\n  animation: downOut 3s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city3c {\r\n  animation: downOut 2.75s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city5c {\r\n  animation: downFadeOut 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.overlayc {\r\n  animation: downFadeOutOverlay 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n", "",{"version":3,"sources":["webpack://./client/style.css"],"names":[],"mappings":"AAAA;EACE,gBAAgB;AAClB;;AAEA;EACE,aAAa;AACf;;AAEA;EACE,gBAAgB;AAClB;;AAEA;EACE,uBAAuB;EACvB,mBAAmB;EACnB,YAAY;EACZ,aAAa;EACb,oBAAoB;EACpB,MAAM;EACN,OAAO;EACP,eAAe;EACf,kBAAkB;EAClB,mBAAmB;AACrB;;AAEA;EACE,kBAAkB;EAClB,YAAY;EACZ,UAAU;AACZ;;AAEA;EACE,kBAAkB;EAClB,kBAAkB;EAClB,mBAAmB;EACnB,MAAM;EACN,OAAO;EACP,SAAS;EACT,QAAQ;EACR,YAAY;AACd;;AAEA;EACE,kBAAkB;EAClB,kBAAkB;EAClB,mBAAmB;EACnB,MAAM;EACN,OAAO;EACP,SAAS;EACT,QAAQ;EACR,YAAY;AACd;;AAEA;EACE,oBAAoB;EACpB,gBAAgB;AAClB;;AAEA;EACE,aAAa;EACb,cAAc;EACd,kBAAkB;EAClB,gBAAgB;EAChB,MAAM;EACN,OAAO;EACP,SAAS;EACT,QAAQ;EACR,YAAY;AACd;;AAEA;EACE,mBAAmB;EACnB,gBAAgB;EAChB,aAAa;EACb,sBAAsB;AACxB;;AAEA;EACE,mBAAmB;EACnB,eAAe;EACf,UAAU;AACZ;;AAEA;EACE;IACE,8BAA8B;EAChC;EACA;IACE,+BAA+B;EACjC;EACA;IACE,8BAA8B;EAChC;EACA;IACE,8BAA8B;EAChC;AACF;;AAEA;EACE;IACE,MAAM;EACR;EACA;IACE,QAAQ;EACV;EACA;IACE,QAAQ;EACV;AACF;;AAEA;EACE;IACE,4BAA4B;EAC9B;EACA;IACE,0BAA0B;EAC5B;AACF;;AAEA;EACE;IACE,8CAA8C;EAChD;EACA;IACE,4CAA4C;EAC9C;AACF;;AAEA;EACE;IACE,6BAA6B;EAC/B;EACA;IACE,yBAAyB;EAC3B;AACF;;AAEA;EACE;IACE,yBAAyB;IACzB,UAAU;EACZ;EACA;IACE,yBAAyB;IACzB,UAAU;EACZ;EACA;IACE,6BAA6B;IAC7B,UAAU;EACZ;AACF;;AAEA;EACE;IACE,6BAA6B;EAC/B;EACA;IACE,yBAAyB;EAC3B;AACF;;AAEA;EACE;IACE,yBAAyB;IACzB,UAAU;EACZ;EACA;IACE,yBAAyB;IACzB,UAAU;EACZ;EACA;IACE,6BAA6B;IAC7B,UAAU;EACZ;AACF;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,UAAU;EACZ;AACF;;AAEA;EACE,+DAA+D;AACjE;;AAEA;EACE,0EAA0E;EAC1E,6BAA6B;AAC/B;;AAEA;EACE,iEAAiE;AACnE;;AAEA;EACE,gCAAgC;AAClC;;AAEA;EACE,wEAAwE;AAC1E;;AAEA;EACE,kBAAkB;EAClB,MAAM;EACN,OAAO;EACP,aAAa;EACb,YAAY;EACZ,sBAAsB;EACtB,yBAAyB;AAC3B;;AAEA;EACE,kBAAkB;EAClB,MAAM;EACN,OAAO;EACP,aAAa;EACb,YAAY;EACZ,oBAAoB;EACpB,6BAA6B;AAC/B;;AAEA;EACE,kBAAkB;EAClB,MAAM;EACN,OAAO;EACP,aAAa;EACb,YAAY;EACZ,sBAAsB;EACtB,yBAAyB;AAC3B;;AAEA;EACE,kBAAkB;EAClB,MAAM;EACN,OAAO;EACP,aAAa;EACb,YAAY;EACZ,oBAAoB;EACpB,6BAA6B;AAC/B;;AAEA;EACE,yCAAyC;EACzC,UAAU;AACZ;;AAEA;EACE;IACE,WAAW;IACX,WAAW;IACX,UAAU;EACZ;EACA;IACE,UAAU;IACV,WAAW;IACX,UAAU;EACZ;AACF;;AAEA;EACE,yCAAyC;EACzC,UAAU;AACZ;;AAEA;EACE;IACE,WAAW;IACX,YAAY;IACZ,UAAU;EACZ;EACA;IACE,UAAU;IACV,YAAY;IACZ,UAAU;EACZ;AACF;;AAEA;EACE,kEAAkE;EAClE,UAAU;AACZ;;AAEA;EACE,sEAAsE;EACtE,6BAA6B;EAC7B,UAAU;AACZ;;AAEA;EACE,mCAAmC;EACnC,UAAU;AACZ;;AAEA;EACE,oCAAoC;EACpC,UAAU;AACZ;;AAEA;EACE;IACE,0BAA0B;IAC1B,UAAU;EACZ;EACA;IACE,4BAA4B;IAC5B,UAAU;EACZ;AACF;;AAEA;EACE;IACE,0BAA0B;IAC1B,UAAU;EACZ;EACA;IACE,4BAA4B;IAC5B,UAAU;EACZ;AACF;;AAEA;EACE;IACE,0BAA0B;IAC1B,UAAU;EACZ;EACA;IACE,UAAU;EACZ;EACA;IACE,4BAA4B;IAC5B,UAAU;EACZ;AACF;;AAEA;EACE;IACE,4CAA4C;IAC5C,UAAU;EACZ;EACA;IACE,8CAA8C;IAC9C,UAAU;EACZ;AACF;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,UAAU;EACZ;AACF;;AAEA;EACE;IACE,MAAM;EACR;EACA;IACE,SAAS;EACX;EACA;IACE,QAAQ;EACV;AACF;;AAEA;EACE,mEAAmE;AACrE;;AAEA;EACE,kEAAkE;AACpE;;AAEA;EACE,sEAAsE;AACxE;;AAEA;EACE,mCAAmC;EACnC,UAAU;AACZ;;AAEA;EACE,iCAAiC;EACjC,UAAU;AACZ;;AAEA;EACE,oCAAoC;EACpC,UAAU;AACZ;;AAEA;EACE,qCAAqC;EACrC,6BAA6B;EAC7B,UAAU;AACZ;;AAEA;EACE,4CAA4C;EAC5C,6BAA6B;EAC7B,UAAU;AACZ","sourcesContent":["html {\r\n  overflow: hidden;\r\n}\r\n\r\n::-webkit-scrollbar {\r\n  display: none;\r\n}\r\n\r\n#root {\r\n  overflow: hidden;\r\n}\r\n\r\n.page {\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: 100vw;\r\n  height: 100vh;\r\n  position: 'absolute';\r\n  top: 0;\r\n  left: 0;\r\n  display: 'flex';\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n}\r\n\r\n.openAnim {\r\n  position: absolute;\r\n  width: 100vw;\r\n  z-index: 2;\r\n}\r\n\r\n.page img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.openAnim img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.pageimg {\r\n  pointer-events: none;\r\n  overflow: hidden;\r\n}\r\n\r\n.overlayHolder {\r\n  width: 1910px;\r\n  height: 1070px;\r\n  position: absolute;\r\n  overflow: hidden;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: auto;\r\n}\r\n\r\n.overlay {\r\n  pointer-events: all;\r\n  overflow: hidden;\r\n  opacity: 0.75;\r\n  transition: opacity 1s;\r\n}\r\n\r\n.overlay:hover {\r\n  pointer-events: all;\r\n  cursor: pointer;\r\n  opacity: 1;\r\n}\r\n\r\n@keyframes float1 {\r\n  0% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n  33% {\r\n    transform: translate(-1vw, 2vh);\r\n  }\r\n  66% {\r\n    transform: translate(2vw, 3vh);\r\n  }\r\n  100% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n}\r\n\r\n@keyframes hover1 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 6vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n@keyframes upIn {\r\n  0% {\r\n    transform: translateY(100vh);\r\n  }\r\n  100% {\r\n    transform: translateY(0vh);\r\n  }\r\n}\r\n\r\n@keyframes space1 {\r\n  0% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n  }\r\n  100% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n  }\r\n}\r\n\r\n@keyframes page1 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #9e9e9e;\r\n  }\r\n}\r\n\r\n@keyframes page1c {\r\n  0% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes page2 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #f7c6f9;\r\n  }\r\n}\r\n\r\n@keyframes page2c {\r\n  0% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeIn {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1 {\r\n  animation: upIn 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space12 {\r\n  animation: upIn 3s ease-in-out, fadein 5s, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n}\r\n\r\n.spaceOverlay {\r\n  animation: space1 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space2 {\r\n  animation: upIn 2.5s ease-in-out;\r\n}\r\n\r\n.space3 {\r\n  animation: upIn 3.65s ease-in-out, float1 16s infinite 3.65s ease-in-out;\r\n}\r\n\r\n.page1 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1 1.75s;\r\n  background-color: #9e9e9e;\r\n}\r\n\r\n.page1c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.page2 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2 1.75s;\r\n  background-color: #f7c6f9;\r\n}\r\n\r\n.page2c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.cloudsLIn {\r\n  animation: cloudsLIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsLIn {\r\n  0% {\r\n    top: -100vh;\r\n    left: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    left: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.cloudsRIn {\r\n  animation: cloudsRIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsRIn {\r\n  0% {\r\n    top: -100vh;\r\n    right: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    right: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1c {\r\n  animation: downOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space12c {\r\n  animation: downFadeOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.space2c {\r\n  animation: downOut 2.5s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space3c {\r\n  animation: downOut 3.65s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes downOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOutOverlay {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  40% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes space1c {\r\n  0% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes hover2 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 12vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n.city1 {\r\n  animation: upIn 2.975s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.city2 {\r\n  animation: upIn 3s ease-in-out, hover1 14s infinite ease-in-out 1s;\r\n}\r\n\r\n.city3 {\r\n  animation: upIn 3.1s ease-in-out, hover1 15s infinite ease-in-out 0.5s;\r\n}\r\n\r\n.city1c {\r\n  animation: downOut 3.2s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city2c {\r\n  animation: downOut 3s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city3c {\r\n  animation: downOut 2.75s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city5c {\r\n  animation: downFadeOut 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.overlayc {\r\n  animation: downFadeOutOverlay 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -3524,6 +3577,10 @@ module.exports = function cssWithMappingToString(item) {
       content = _item[1],
       cssMapping = _item[3];
 
+  if (!cssMapping) {
+    return content;
+  }
+
   if (typeof btoa === "function") {
     // eslint-disable-next-line no-undef
     var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(cssMapping))));
@@ -3621,6 +3678,76 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/download.jpg");
+
+/***/ }),
+
+/***/ "./client/img/new/city1.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city1.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city1.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city2.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city2.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city2.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city3.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city3.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city3.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city4.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city4.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city4.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city5.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city5.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city5.png");
 
 /***/ }),
 
@@ -3751,7 +3878,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var name = "firebase";
-var version = "8.7.1";
+var version = "8.10.0";
 
 /**
  * @license
@@ -34127,7 +34254,7 @@ function __spreadArray(to, from, pack) {
             ar[i] = from[i];
         }
     }
-    return to.concat(ar || from);
+    return to.concat(ar || Array.prototype.slice.call(from));
 }
 
 function __await(v) {
@@ -34325,6 +34452,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./img/new/space2.png */ "./client/img/new/space2.png");
 /* harmony import */ var _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./img/new/space3.png */ "./client/img/new/space3.png");
 /* harmony import */ var _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./img/new/space4.png */ "./client/img/new/space4.png");
+/* harmony import */ var _img_new_city1_png__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./img/new/city1.png */ "./client/img/new/city1.png");
+/* harmony import */ var _img_new_city2_png__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./img/new/city2.png */ "./client/img/new/city2.png");
+/* harmony import */ var _img_new_city3_png__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./img/new/city3.png */ "./client/img/new/city3.png");
+/* harmony import */ var _img_new_city4_png__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./img/new/city4.png */ "./client/img/new/city4.png");
+/* harmony import */ var _img_new_city5_png__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./img/new/city5.png */ "./client/img/new/city5.png");
 
 
 
@@ -34347,13 +34479,32 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+var timeout = '';
+
 function Web(props) {
-  var children = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
-  const [page, setPage] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(0);
+  const [page, setPage] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("page")) || 0);
   const [isReady, setReady] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [children, setChildren] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children));
+  const scroller = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   var timeout = '';
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    var temp = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
+    temp[page] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page], {
+      open: true
+    });
+    setChildren(temp);
+    setTimeout(() => {
+      scroller.current.scrollTop = 100;
+      console.log(scroller.current.scrollTop);
+    }, 1000);
+  }, []);
 
   function detect(e) {
+    //console.log(children[page]);
     const window = e.target;
 
     if (!isReady) {
@@ -34365,77 +34516,321 @@ function Web(props) {
 
     if (window.scrollTop < 1) {
       if (page != 0) {
+        var temp = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
+        temp[page] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page], {
+          open: false
+        });
         console.log("scrolling up");
+        localStorage.setItem("page", JSON.stringify(page - 1));
         setPage(page - 1);
         setReady(false);
+        temp[page - 1] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page - 1], {
+          open: true
+        });
+        setChildren(temp);
         timeout = setTimeout(() => {
           setReady(true);
-        }, 2000);
+        }, 5000);
       }
     } else if (window.scrollTop > 1) {
       if (page != children.length - 1) {
+        var temp = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
+        temp[page] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page], {
+          open: false
+        });
         console.log("scrolling down");
+        localStorage.setItem("page", JSON.stringify(page + 1));
         setPage(page + 1);
         setReady(false);
+        temp[page + 1] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page + 1], {
+          open: true
+        });
+        setChildren(temp);
         timeout = setTimeout(() => {
           setReady(true);
-        }, 2000);
+        }, 5000);
       }
     }
 
     window.scrollTo(0, 1);
   }
 
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Scroll, {
-    detect: detect
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, children[page]));
-}
-
-function Scroll(props) {
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    onScroll: props.detect,
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    onScroll: detect,
     style: {
       height: "100vh",
       width: "100vw",
       overflow: "scroll",
-      position: "absolute",
+      position: "fixed",
       top: 0,
-      left: 0
+      left: 0,
+      zIndex: 10000
+    }
+  }, children, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: scroller,
+    id: "scroller",
+    style: {
+      height: "101vh",
+      overflowY: "scroll"
+    }
+  })));
+}
+
+function City(props) {
+  const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const page = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("none");
+  const delay = props.delay || 1.5;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    console.log(props.open);
+
+    if (props.open) {
+      page.current.style.display = "block";
+      container.current.style.display = "none";
+      overlay.current.style.display = "block";
+      page.current.className = "page2";
+      setTimeout(() => {
+        container.current.style.display = "flex";
+      }, delay * 1000);
+    } else if (props.open == false) {
+      overlay.current.style.display = "none";
+      page.current.className = "page2c";
+      setTimeout(() => {
+        container.current.style.display = "none";
+        page.current.style.display = "none";
+      }, 5000);
+    }
+  }, [props]);
+
+  function closeOut() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder overlayc"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_11__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(40%, 28%)",
+        width: "800px"
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city5_png__WEBPACK_IMPORTED_MODULE_23__.default,
+      className: "pageimg city5c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city4_png__WEBPACK_IMPORTED_MODULE_22__.default,
+      className: "pageimg city3c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city3_png__WEBPACK_IMPORTED_MODULE_21__.default,
+      className: "pageimg city2c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city1_png__WEBPACK_IMPORTED_MODULE_19__.default,
+      className: "pageimg city1c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city2_png__WEBPACK_IMPORTED_MODULE_20__.default,
+      className: "pageimg city2c"
+    }));
+  }
+
+  function openIn() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder city1"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_11__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(40%, 28%)",
+        width: "800px"
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city5_png__WEBPACK_IMPORTED_MODULE_23__.default,
+      className: "pageimg city1"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city4_png__WEBPACK_IMPORTED_MODULE_22__.default,
+      className: "pageimg city3"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city3_png__WEBPACK_IMPORTED_MODULE_21__.default,
+      className: "pageimg city2"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city1_png__WEBPACK_IMPORTED_MODULE_19__.default,
+      className: "pageimg city1"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city2_png__WEBPACK_IMPORTED_MODULE_20__.default,
+      className: "pageimg city2"
+    }));
+  }
+
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: page,
+    style: {
+      display: "none"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      height: "101vh"
-    }
-  }));
-}
-
-function Page(props) {
-  console.log(props);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: overlay,
+    className: "openAnim"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
+    className: "pageimg cloudsRIn"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
+    className: "pageimg cloudsLIn"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: container,
+    style: props.style,
     className: "page"
-  }, props.children);
+  }, props.open ? openIn() : closeOut()));
 }
 
-(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.render)( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Web, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Page, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Page, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_projecthorizonex_gif__WEBPACK_IMPORTED_MODULE_10__.default,
-  className: "pageimg overlay hover1",
-  style: {
-    transform: "translate(14vw, 13vh) rotate(12deg)",
-    width: "700px"
+function Space(props) {
+  const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const page = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("none");
+  const delay = props.delay || 1.5;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    console.log(props.open);
+
+    if (props.open) {
+      page.current.style.display = "block";
+      container.current.style.display = "none";
+      overlay.current.style.display = "block";
+      page.current.className = "page1";
+      setTimeout(() => {
+        container.current.style.display = "flex";
+      }, delay * 1000);
+    } else if (props.open == false) {
+      overlay.current.style.display = "none";
+      page.current.className = "page1c";
+      setTimeout(() => {
+        container.current.style.display = "none";
+        page.current.style.display = "none";
+      }, 5000);
+    }
+  }, [props]);
+
+  function closeOut() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder overlayc"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_projecthorizonex_gif__WEBPACK_IMPORTED_MODULE_10__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(36%, 28%) rotate(12deg)",
+        width: "700px"
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space12_png__WEBPACK_IMPORTED_MODULE_15__.default,
+      className: "pageimg space12c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__.default,
+      className: "pageimg space2c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__.default,
+      className: "pageimg space1c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__.default,
+      className: "pageimg space3c"
+    }));
   }
-}), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_new_space12_png__WEBPACK_IMPORTED_MODULE_15__.default,
-  className: "pageimg hover1"
-}), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__.default,
-  className: "pageimg"
-}), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__.default,
-  className: "pageimg hover1"
-}), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__.default,
-  className: "pageimg float1"
-})))), document.getElementById("root"));
+
+  function openIn() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder space1"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_projecthorizonex_gif__WEBPACK_IMPORTED_MODULE_10__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(36%, 28%) rotate(12deg)",
+        width: "700px"
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space12_png__WEBPACK_IMPORTED_MODULE_15__.default,
+      className: "pageimg space12"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__.default,
+      className: "pageimg space2"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__.default,
+      className: "pageimg space1"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__.default,
+      className: "pageimg space3"
+    }));
+  }
+
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: page,
+    style: {
+      display: "none"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: overlay,
+    className: "openAnim"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
+    className: "pageimg cloudsRIn"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
+    className: "pageimg cloudsLIn"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: container,
+    style: props.style,
+    className: "page"
+  }, props.open ? openIn() : closeOut()));
+}
+
+function Title(props) {
+  const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const page = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("none");
+  const delay = props.delay || 0;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    console.log(props.open);
+
+    if (props.open) {
+      page.current.style.display = "block";
+      overlay.current.style.display = "block";
+      container.current.style.display = "flex";
+    } else if (props.open == false) {
+      overlay.current.style.display = "none";
+      setTimeout(() => {
+        container.current.style.display = "none";
+        page.current.style.display = "none";
+      }, 5000);
+    }
+  }, [props]);
+
+  function closeOut() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "\u3053\u3093\u3070\u3093\u306F"));
+  }
+
+  function openIn() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "\u3053\u3093\u3070\u3093\u306F"));
+  }
+
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    className: "page0",
+    ref: page,
+    style: {
+      display: "none"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: overlay,
+    className: "openAnim"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
+    className: "pageimg cloudsRIn"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
+    className: "pageimg cloudsLIn"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: container,
+    style: props.style,
+    className: "page"
+  }, props.open ? openIn() : closeOut()));
+}
+
+(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.render)( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Web, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Title, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Space, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(City, null))), document.getElementById("root"));
 /*
 
 
