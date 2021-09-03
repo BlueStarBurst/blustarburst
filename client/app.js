@@ -137,7 +137,7 @@ function City(props) {
         return (
             <>
                 <div className="overlayHolder overlayc">
-                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(40%, 28%)", width: "800px" }} />
+                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(110%, 27%)", width: "820px" }} />
                 </div>
                 <img src={city5} className="pageimg city5c" />
                 <img src={city4} className="pageimg city3c" />
@@ -152,7 +152,7 @@ function City(props) {
         return (
             <>
                 <div className="overlayHolder city1">
-                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(40%, 28%)", width: "800px" }} />
+                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(110%, 27%)", width: "820px" }} />
                 </div>
                 <img src={city5} className="pageimg city1" />
                 <img src={city4} className="pageimg city3" />
@@ -209,7 +209,7 @@ function Space(props) {
         return (
             <>
                 <div className="overlayHolder overlayc">
-                    <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(36%, 28%) rotate(12deg)", width: "700px" }} />
+                    <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(130%, 30%) rotate(12deg)", width: "700px" }} />
                 </div>
                 <img src={space1} className="pageimg space12c" />
                 <img src={space2} className="pageimg space2c" />
@@ -223,7 +223,7 @@ function Space(props) {
         return (
             <>
                 <div className="overlayHolder space1">
-                    <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(36%, 28%) rotate(12deg)", width: "700px" }} />
+                    <img src={horizonex} className="pageimg overlay" style={{ transform: "translate(130%, 30%) rotate(12deg)", width: "700px" }} />
                 </div>
                 <img src={space1} className="pageimg space12" />
                 <img src={space2} className="pageimg space2" />
