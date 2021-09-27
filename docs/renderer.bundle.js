@@ -34573,9 +34573,32 @@ function Web(props) {
     window.scrollTo(0, 1);
   }
 
+  var swipeY = 0;
+
+  function onSwipeStart(e) {
+    swipeY = e.touches[0].clientY;
+  }
+
+  function onSwipeEnd(e) {
+    if (!isReady) {
+      return;
+    }
+
+    var deadband = 100;
+    console.log(e);
+
+    if (e.changedTouches[0].clientY > swipeY + deadband) {
+      prevPage();
+    } else if (e.changedTouches[0].clientY < swipeY - deadband) {
+      nextPage();
+    }
+  }
+
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     onWheel: detectWheel,
     onKeyPress: detectKey,
+    onTouchStart: onSwipeStart,
+    onTouchEnd: onSwipeEnd,
     ref: scroller,
     style: {
       height: "100vh",

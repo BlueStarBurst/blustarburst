@@ -118,8 +118,30 @@ function Web(props) {
         window.scrollTo(0, 1);
     }
 
+    var swipeY = 0;
+
+    function onSwipeStart(e) {
+        swipeY = e.touches[0].clientY;
+    }
+
+    function onSwipeEnd(e) {
+        if (!isReady) {
+            return;
+        }
+
+        var deadband = 100;
+
+        console.log(e);
+
+        if (e.changedTouches[0].clientY > swipeY + deadband) {
+            prevPage();
+        } else if (e.changedTouches[0].clientY < swipeY - deadband) {
+            nextPage();
+        }
+    }
+
     return <>
-        <div onWheel={detectWheel} onKeyPress={detectKey} ref={scroller} style={{ height: "100vh", width: "100vw", position: "fixed", top: 0, left: 0, zIndex: 10000 }} >
+        <div onWheel={detectWheel} onKeyPress={detectKey} onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd} ref={scroller} style={{ height: "100vh", width: "100vw", position: "fixed", top: 0, left: 0, zIndex: 10000 }} >
             {children}
         </div>
     </>;
