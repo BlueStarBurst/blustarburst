@@ -1,7 +1,6 @@
 {
   "scripts": {
     "dev": "rimraf docs && cross-env NODE_ENV=development webpack --watch --progress --color --config webpack.config.js",
-    "start": "http-server ./docs",
     "server": "webpack serve --config devserver.config.js"
   },
   "devDependencies": {

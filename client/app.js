@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react'
+import React, { useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react'
 import { render } from 'react-dom'
 
 import "./style.css"
@@ -45,62 +45,82 @@ function Web(props) {
 
     var timeout = ''
 
+    const arrowDown = useKeyPress("ArrowDown");
+    const arrowUp = useKeyPress("ArrowUp");
+
+    useLayoutEffect(() => {
+        scroller.current.scrollTop = 1
+    }, [])
+
+    useEffect(() => {
+        detectKey();
+    }, [arrowDown, arrowUp])
+
     useEffect(() => {
         var temp = React.Children.toArray(props.children);
         temp[page] = React.cloneElement(temp[page], { open: true })
         setChildren(temp);
-
-        setTimeout(() => {
-            scroller.current.scrollTop = 100;
-            console.log(scroller.current.scrollTop)
-        }, 1000)
     }, [])
 
-    function detect(e) {
+    function nextPage() {
 
-        //console.log(children[page]);
+        if (page != children.length - 1) {
+            var temp = React.Children.toArray(props.children);
+            temp[page] = React.cloneElement(temp[page], { open: false })
+            console.log("scrolling down");
+            localStorage.setItem("page", JSON.stringify(page + 1))
+            setPage(page + 1);
+            setReady(false);
+            temp[page + 1] = React.cloneElement(temp[page + 1], { open: true })
+            setChildren(temp);
+            timeout = setTimeout(() => { setReady(true) }, 5000);
+        }
 
-        const window = e.target;
+    }
 
+    function prevPage() {
+        if (page != 0) {
+            var temp = React.Children.toArray(props.children);
+            temp[page] = React.cloneElement(temp[page], { open: false })
+            console.log("scrolling up");
+            localStorage.setItem("page", JSON.stringify(page - 1))
+            setPage(page - 1);
+            setReady(false);
+            temp[page - 1] = React.cloneElement(temp[page - 1], { open: true })
+            setChildren(temp);
+            timeout = setTimeout(() => { setReady(true) }, 5000);
+        }
+    }
+
+    function detectKey() {
         if (!isReady) {
-            window.scrollTo(0, 1);
             return;
         }
 
-        console.log(window.scrollTop);
-        if (window.scrollTop < 1) {
-            if (page != 0) {
-                var temp = React.Children.toArray(props.children);
-                temp[page] = React.cloneElement(temp[page], { open: false })
-                console.log("scrolling up");
-                localStorage.setItem("page", JSON.stringify(page - 1))
-                setPage(page - 1);
-                setReady(false);
-                temp[page - 1] = React.cloneElement(temp[page - 1], { open: true })
-                setChildren(temp);
-                timeout = setTimeout(() => { setReady(true) }, 5000);
-            }
-        } else if (window.scrollTop > 1) {
-            if (page != children.length - 1) {
-                var temp = React.Children.toArray(props.children);
-                temp[page] = React.cloneElement(temp[page], { open: false })
-                console.log("scrolling down");
-                localStorage.setItem("page", JSON.stringify(page + 1))
-                setPage(page + 1);
-                setReady(false);
-                temp[page + 1] = React.cloneElement(temp[page + 1], { open: true })
-                setChildren(temp);
-                timeout = setTimeout(() => { setReady(true) }, 5000);
-            }
+        if (arrowUp) {
+            prevPage();
+        } else if (arrowDown) {
+            nextPage();
+        }
+    }
+
+    function detectWheel(e) {
+        if (!isReady) {
+            return;
+        }
+
+        if (e.deltaY < 0) {
+            prevPage();
+        } else if (e.deltaY > 0) {
+            nextPage();
         }
 
         window.scrollTo(0, 1);
     }
 
     return <>
-        <div onScroll={detect} style={{ height: "100vh", width: "100vw", overflow: "scroll", position: "fixed", top: 0, left: 0, zIndex: 10000 }} >
+        <div onWheel={detectWheel} onKeyPress={detectKey} ref={scroller} style={{ height: "100vh", width: "100vw", position: "fixed", top: 0, left: 0, zIndex: 10000 }} >
             {children}
-            <div ref={scroller} id="scroller" style={{ height: "101vh", overflowY: "scroll" }}></div>
         </div>
     </>;
 }
@@ -314,7 +334,34 @@ render(<>
 
 
 
-
+// Hook
+function useKeyPress(targetKey) {
+    // State for keeping track of whether key is pressed
+    const [keyPressed, setKeyPressed] = useState(false);
+    // If pressed key is our target key then set to true
+    function downHandler({ key }) {
+        if (key === targetKey) {
+            setKeyPressed(true);
+        }
+    }
+    // If released key is our target key then set to false
+    const upHandler = ({ key }) => {
+        if (key === targetKey) {
+            setKeyPressed(false);
+        }
+    };
+    // Add event listeners
+    useEffect(() => {
+        window.addEventListener("keydown", downHandler);
+        window.addEventListener("keyup", upHandler);
+        // Remove event listeners on cleanup
+        return () => {
+            window.removeEventListener("keydown", downHandler);
+            window.removeEventListener("keyup", upHandler);
+        };
+    }, []); // Empty array ensures that effect is only run on mount and unmount
+    return keyPressed;
+}
 
 /*
 
