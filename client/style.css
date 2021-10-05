@@ -6,6 +6,10 @@ html {
   display: none;
 }
 
+.hidden {
+  display: none;
+}
+
 #root {
   overflow: hidden;
 }
@@ -400,4 +404,27 @@ html {
   animation: downFadeOutOverlay 3s ease-in-out;
   background-color: transparent;
   opacity: 0;
+}
+
+.textIn {
+  opacity: 1;
+  animation: fadeIn 3s;
+}
+
+.textOut {
+  opacity: 0;
+  animation: fadeOut 3s;
+}
+
+.text {
+  z-index: 10;
+  background-color: #00000081;
+  color: white;
+  border-radius: 15px;
+  padding: 3%;
+  max-width: 40%;
+}
+
+.text p {
+  margin: 0;
 }
