@@ -181,7 +181,7 @@ function City(props) {
         return (
             <>
                 <div className="overlayHolder overlayc">
-                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(110%, 27%)", width: "820px" }} />
+                    <img src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(235%, 27%)", width: "460px", height: "480px" }} />
                 </div>
                 <img src={city5} className="pageimg city5c" />
                 <img src={city4} className="pageimg city3c" />
@@ -196,7 +196,7 @@ function City(props) {
         return (
             <>
                 <div className="overlayHolder city1">
-                    <img onMouseEnter={mouseIn} onMouseLeave={mouseOut} src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(110%, 27%)", width: "820px" }} />
+                    <img onMouseEnter={mouseIn} onMouseLeave={check} src={tutorialscheduleex} className="pageimg overlay" style={{ transform: "translate(235%, 27%)", width: "460px", height: "480px" }} />
                 </div>
                 <img src={city5} className="pageimg city1" />
                 <img src={city4} className="pageimg city3" />
@@ -208,15 +208,31 @@ function City(props) {
         )
     }
 
+    var timeout = '';
+
     function mouseIn() {
         textRef.current.className = "textIn text";
+        clearTimeout(timeout);
+    }
+
+    function check() {
+        timeout = setTimeout(() => {
+            textRef.current.className = "textOut text";
+            mouseOut();
+        }, 3000);
+    }
+
+    function up() {
+        clearTimeout(timeout);
     }
 
     function mouseOut() {
-        textRef.current.className = "textOut text";
+        if (textRef.current.className == "textIn text") {
+            textRef.current.className = "textOut text";
+        }
         setTimeout(() => {
             textRef.current.className = "hidden";
-        },4000);
+        }, 4000);
     }
 
     return (
@@ -226,7 +242,7 @@ function City(props) {
                 <img src={clouds2} className="pageimg cloudsLIn" />
             </div>
             <div ref={container} style={props.style} className={"page"}>
-            <div className="hidden text" ref={textRef} >
+                <div className="hidden text" ref={textRef} onMouseEnter={up} onMouseLeave={check}>
                     <p>
                         This project is called CS Schedule and is a calendar and an online communication platform that allows students to study together. This was developed during the COVID-19 pandemic to prevent online students at my school from missing out from studying with others.
                     </p>
@@ -286,7 +302,7 @@ function Space(props) {
         return (
             <>
                 <div className="overlayHolder space1">
-                    <img onMouseEnter={mouseIn} onMouseLeave={mouseOut} src={horizonex} className="pageimg overlay" style={{ transform: "translate(130%, 30%) rotate(12deg)", width: "700px" }} />
+                    <img onMouseEnter={mouseIn} onMouseLeave={check} src={horizonex} className="pageimg overlay" style={{ transform: "translate(130%, 30%) rotate(12deg)", width: "700px" }} />
                 </div>
                 <img src={space1} className="pageimg space12" />
                 <img src={space2} className="pageimg space2" />
@@ -296,17 +312,31 @@ function Space(props) {
         )
     }
 
+    var timeout = '';
+
     function mouseIn() {
-        showText(true);
         textRef.current.className = "textIn text";
+        clearTimeout(timeout)
+    }
+
+    function check() {
+        timeout = setTimeout(() => {
+            textRef.current.className = "textOut text";
+            mouseOut();
+        }, 3000);
+    }
+
+    function up() {
+        clearTimeout(timeout);
     }
 
     function mouseOut() {
-        showText(false);
-        textRef.current.className = "textOut text";
+        if (textRef.current.className == "textIn text") {
+            textRef.current.className = "textOut text";
+        }
         setTimeout(() => {
             textRef.current.className = "hidden";
-        },4000);
+        }, 4000);
     }
 
     return (
@@ -316,7 +346,7 @@ function Space(props) {
                 <img src={clouds2} className="pageimg cloudsLIn" />
             </div>
             <div ref={container} style={props.style} className={"page"}>
-                <div className="hidden text" ref={textRef} >
+                <div className="hidden text" ref={textRef} onMouseEnter={up} onMouseLeave={check} >
                     <p>
                         This is my prototype for an online chatroom called WebRTC World! In this project, I used react-three-fiber in order to make a 3d environment for browsers. Position and rotation data are sent directly from peer to peer using WebRTC.
                     </p>

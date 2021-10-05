@@ -71,6 +71,7 @@ html {
   overflow: hidden;
   opacity: 0.75;
   transition: opacity 1s;
+  object-fit: cover;
 }
 
 .overlay:hover {
