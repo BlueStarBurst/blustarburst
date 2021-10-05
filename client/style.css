@@ -429,3 +429,14 @@ html {
 .text p {
   margin: 0;
 }
+
+.topbar {
+  width: 100%;
+  height: min-content;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #f7c6f9;
+  text-align: center;
+  cursor: pointer;
+}
