@@ -393,18 +393,25 @@ function Title(props) {
     function openIn() {
         return (
             <>
-                <h1>こんばんは</h1>
+                {/* <h1>こんばんは</h1> */}
+                <h1>hi</h1>
             </>
         )
     }
 
-    function onFullscreen() {
-        document.documentElement.requestFullscreen();
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
     }
 
     return (
         <div className={"page0"} ref={page} style={{ display: "none" }}>
-            <div className="topbar" onClick={onFullscreen}> Click here to enable fullscreen! </div>
+            <div className="topbar" onClick={toggleFullScreen}> Click here to toggle fullscreen! </div>
             <div ref={overlay} className="openAnim">
                 <img src={clouds} className="pageimg cloudsRIn" />
                 <img src={clouds2} className="pageimg cloudsLIn" />
