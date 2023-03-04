@@ -6,19 +6,31 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import firebase from 'firebase/app';
 //import react three fiber
-import { Canvas, useFrame, useThree, useGraph } from '@react-three/fiber'
-import { useLoader } from '@react-three/fiber'
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
-import loco from './assets/3d/locomotive/material/locomotive.obj'
-import locoMtl from './assets/3d/locomotive/material/locomotive.mtl'
-// import passenger from './assets/3d/passenger/textured/passengerwagon.fbx'
-import passenger from './assets/3d/passenger/materials/passengerwagon.obj'
-import passengerMtl from './assets/3d/passenger/materials/passengerwagon.mtl'
-import { OrbitControls } from '@react-three/drei';
-import { OBJLoader } from 'three-stdlib';
+// import { Canvas, useFrame, useThree, useGraph } from '@react-three/fiber'
+// import { useLoader } from '@react-three/fiber'
+// import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+// import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
+// import loco from './assets/3d/locomotive/material/locomotive.obj'
+// import locoMtl from './assets/3d/locomotive/material/locomotive.mtl'
+// // import passenger from './assets/3d/passenger/textured/passengerwagon.fbx'
+// import passenger from './assets/3d/passenger/materials/passengerwagon.obj'
+// import passengerMtl from './assets/3d/passenger/materials/passengerwagon.mtl'
+// import { OrbitControls } from '@react-three/drei';
+// import { OBJLoader } from 'three-stdlib';
 
-import * as THREE from 'three'
+// import * as THREE from 'three'
+
+import { TextField } from '@mui/material';
+import getHangul from './hangul';
+
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+const darkTheme = createTheme({
+    palette: {
+        mode: 'dark',
+    },
+});
 
 var timeout = ''
 
@@ -103,7 +115,7 @@ function Box(props) {
     )
 }
 
-function App() {
+function Train() {
     return (
         <div className="page">
             <h1>bryant hargreaves</h1>
@@ -123,6 +135,77 @@ function App() {
                 <OrbitControls />
             </Canvas>
         </div>
+    )
+}
+
+function App() {
+
+    const [currentThing, setCurrentThing] = useState("")
+
+    function onTextChange(e) {
+        console.log(e.target.value)
+        setCurrentThing(getHangul(e.target.value))
+    }
+
+    function copyElementText(e) {
+        if (currentThing == "") {
+            return
+        }
+
+        // get root element for variable scope
+        var r = document.querySelector(':root');
+
+        r.style.setProperty('--card-color', "#1a36a6");
+        r.style.setProperty('--offset', "0px");
+        setTimeout(() => {
+            r.style.setProperty('--card-color', "#1d1d1d");
+        }, 250);
+
+        setTimeout(() => {
+            r.style.setProperty('--offset', "100px");
+        }, 2000);
+
+        navigator.clipboard.writeText(currentThing).then(function () {
+            console.log('Async: Copying to clipboard was successful!');
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+    }
+
+    function hoverEffect(e) {
+        const card = e.target;
+        const rect = card.getBoundingClientRect(),
+            x = e.clientX - rect.left,
+            y = e.clientY - rect.top;
+
+        card.style.setProperty("--mouseX", `${x}px`);
+        card.style.setProperty("--mouseY", `${y}px`);
+    }
+
+    return (<div className='page'>
+        <ThemeProvider theme={darkTheme}>
+            <CssBaseline />
+            <TextField id="outlined-basic" label="Phonetic Korean" variant="standard" onChange={onTextChange} />
+
+            <div className='relative'>
+                <div onClick={copyElementText} onMouseMove={hoverEffect} className='output'>
+                    <hi className="faketext" onClick={copyElementText}>{currentThing}</hi>
+                    <h1 className='output-content' onClick={copyElementText}>{currentThing}</h1>
+                </div>
+            </div>
+
+            <p className='info'>
+                This is a tool to convert English Phonetic to Korean Characters. Ex: "ko" -{'>'} "코" <br/> (it's is for people who are too lazy to find a korean keyboard)
+
+            </p>
+
+            <div className='copied'>
+                <h5>"{currentThing}" has been copied to your clipboard</h5>
+            </div>
+
+
+        </ThemeProvider>
+    </div>
     )
 }
 
