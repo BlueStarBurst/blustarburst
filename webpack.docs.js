@@ -6,7 +6,7 @@ function createCopy() {
     return ({
         entry: './src/app.js',
         output: {
-            path: path.resolve(__dirname, '../docs'),
+            path: path.resolve(__dirname, './docs'),
             filename: 'appBundle.js',
         },
         module: {
