@@ -52,7 +52,7 @@ var ERRORS = (_a$1 = {},
 var ERROR_FACTORY = new _firebase_util__WEBPACK_IMPORTED_MODULE_0__.ErrorFactory('app', 'Firebase', ERRORS);
 
 var name$c = "@firebase/app";
-var version$1 = "0.6.28";
+var version$1 = "0.6.30";
 
 var name$b = "@firebase/analytics";
 
@@ -292,7 +292,7 @@ var FirebaseAppImpl = /** @class */ (function () {
     FirebaseAppImpl.prototype.delete ||
     console.log('dc');
 
-var version = "8.7.0";
+var version = "8.10.0";
 
 /**
  * @license
@@ -788,6 +788,7 @@ var Provider = /** @class */ (function () {
         this.component = null;
         this.instances = new Map();
         this.instancesDeferred = new Map();
+        this.instancesOptions = new Map();
         this.onInitCallbacks = new Map();
     }
     /**
@@ -909,6 +910,7 @@ var Provider = /** @class */ (function () {
     Provider.prototype.clearInstance = function (identifier) {
         if (identifier === void 0) { identifier = DEFAULT_ENTRY_NAME; }
         this.instancesDeferred.delete(identifier);
+        this.instancesOptions.delete(identifier);
         this.instances.delete(identifier);
     };
     // app.delete() will call this method on every provider to delete the services
@@ -940,6 +942,10 @@ var Provider = /** @class */ (function () {
     Provider.prototype.isInitialized = function (identifier) {
         if (identifier === void 0) { identifier = DEFAULT_ENTRY_NAME; }
         return this.instances.has(identifier);
+    };
+    Provider.prototype.getOptions = function (identifier) {
+        if (identifier === void 0) { identifier = DEFAULT_ENTRY_NAME; }
+        return this.instancesOptions.get(identifier) || {};
     };
     Provider.prototype.initialize = function (opts) {
         var e_2, _a;
@@ -1035,6 +1041,7 @@ var Provider = /** @class */ (function () {
                 options: options
             });
             this.instances.set(instanceIdentifier, instance);
+            this.instancesOptions.set(instanceIdentifier, options);
             /**
              * Invoke onInit listeners.
              * Note this.component.onInstanceCreated is different, which is used by the component creator,
@@ -1482,12 +1489,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "base64": () => (/* binding */ base64),
 /* harmony export */   "base64Decode": () => (/* binding */ base64Decode),
 /* harmony export */   "base64Encode": () => (/* binding */ base64Encode),
+/* harmony export */   "base64urlEncodeWithoutPadding": () => (/* binding */ base64urlEncodeWithoutPadding),
 /* harmony export */   "calculateBackoffMillis": () => (/* binding */ calculateBackoffMillis),
 /* harmony export */   "contains": () => (/* binding */ contains),
 /* harmony export */   "createMockUserToken": () => (/* binding */ createMockUserToken),
 /* harmony export */   "createSubscribe": () => (/* binding */ createSubscribe),
 /* harmony export */   "decode": () => (/* binding */ decode),
 /* harmony export */   "deepCopy": () => (/* binding */ deepCopy),
+/* harmony export */   "deepEqual": () => (/* binding */ deepEqual),
 /* harmony export */   "deepExtend": () => (/* binding */ deepExtend),
 /* harmony export */   "errorPrefix": () => (/* binding */ errorPrefix),
 /* harmony export */   "extractQuerystring": () => (/* binding */ extractQuerystring),
@@ -1517,7 +1526,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "querystringDecode": () => (/* binding */ querystringDecode),
 /* harmony export */   "safeGet": () => (/* binding */ safeGet),
 /* harmony export */   "stringLength": () => (/* binding */ stringLength),
-/* harmony export */   "stringToByteArray": () => (/* binding */ stringToByteArray$1),
+/* harmony export */   "stringToByteArray": () => (/* binding */ stringToByteArray),
 /* harmony export */   "stringify": () => (/* binding */ stringify),
 /* harmony export */   "validateArgCount": () => (/* binding */ validateArgCount),
 /* harmony export */   "validateCallback": () => (/* binding */ validateCallback),
@@ -1612,7 +1621,7 @@ var assertionError = function (message) {
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var stringToByteArray = function (str) {
+var stringToByteArray$1 = function (str) {
     // TODO(user): Use native implementations if/when available
     var out = [];
     var p = 0;
@@ -1779,7 +1788,7 @@ var base64 = {
         if (this.HAS_NATIVE_SUPPORT && !webSafe) {
             return btoa(input);
         }
-        return this.encodeByteArray(stringToByteArray(input), webSafe);
+        return this.encodeByteArray(stringToByteArray$1(input), webSafe);
     },
     /**
      * Base64-decode a string.
@@ -1875,8 +1884,16 @@ var base64 = {
  * URL-safe base64 encoding
  */
 var base64Encode = function (str) {
-    var utf8Bytes = stringToByteArray(str);
+    var utf8Bytes = stringToByteArray$1(str);
     return base64.encodeByteArray(utf8Bytes, true);
+};
+/**
+ * URL-safe base64 encoding (without "." padding in the end).
+ * e.g. Used in JSON Web Token (JWT) parts.
+ */
+var base64urlEncodeWithoutPadding = function (str) {
+    // Use base64url encoding and remove padding in the end (dot characters).
+    return base64Encode(str).replace(/\./g, '');
 };
 /**
  * URL-safe base64 decoding
@@ -2067,8 +2084,8 @@ function createMockUserToken(token, projectId) {
     // Unsecured JWTs use the empty string as a signature.
     var signature = '';
     return [
-        base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
-        base64.encodeString(JSON.stringify(payload), /*webSafe=*/ false),
+        base64urlEncodeWithoutPadding(JSON.stringify(header)),
+        base64urlEncodeWithoutPadding(JSON.stringify(payload)),
         signature
     ].join('.');
 }
@@ -2504,6 +2521,42 @@ function map(obj, fn, contextObj) {
         }
     }
     return res;
+}
+/**
+ * Deep equal two objects. Support Arrays and Objects.
+ */
+function deepEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    var aKeys = Object.keys(a);
+    var bKeys = Object.keys(b);
+    for (var _i = 0, aKeys_1 = aKeys; _i < aKeys_1.length; _i++) {
+        var k = aKeys_1[_i];
+        if (!bKeys.includes(k)) {
+            return false;
+        }
+        var aProp = a[k];
+        var bProp = b[k];
+        if (isObject(aProp) && isObject(bProp)) {
+            if (!deepEqual(aProp, bProp)) {
+                return false;
+            }
+        }
+        else if (aProp !== bProp) {
+            return false;
+        }
+    }
+    for (var _a = 0, bKeys_1 = bKeys; _a < bKeys_1.length; _a++) {
+        var k = bKeys_1[_a];
+        if (!aKeys.includes(k)) {
+            return false;
+        }
+    }
+    return true;
+}
+function isObject(thing) {
+    return thing !== null && typeof thing === 'object';
 }
 
 /**
@@ -3169,7 +3222,7 @@ function validateContextObject(fnName, argumentName, context, optional) {
  * @param {string} str
  * @return {Array}
  */
-var stringToByteArray$1 = function (str) {
+var stringToByteArray = function (str) {
     var out = [];
     var p = 0;
     for (var i = 0; i < str.length; i++) {
@@ -3391,7 +3444,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "#root {\r\n  font-family: 'Roboto', sans-serif;\r\n  margin: 0;\r\n  width: 100%;\r\n  display: block;\r\n  justify-content: center;\r\n  --animation-time: 2s;\r\n}\r\n\r\nhtml {\r\n  overflow: hidden;\r\n  height: max-content;\r\n}\r\n\r\n.myRow {\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: auto;\r\n  height: 100vh;\r\n  position: relative;\r\n  min-width: 600px;\r\n  min-width: 100%;\r\n  padding: 0;\r\n}\r\n\r\n.overlay {\r\n  position: absolute;\r\n  display: block;\r\n  width: 100%;\r\n  height: 25%;\r\n  pointer-events: none;\r\n}\r\n\r\n.top {\r\n  top: -7%;\r\n}\r\n\r\n.bottom {\r\n  bottom: -7%;\r\n}\r\n\r\n.topIdle1 {\r\n  animation: topClose 2s, hoverUp 5s infinite 2s;\r\n}\r\n\r\n.bottomIdle1 {\r\n  animation: bottomClose 2s, hoverDown 5s infinite 2s;\r\n}\r\n\r\n.topIdle2 {\r\n  animation: topClose 2s, hoverUp 5s infinite 3s;\r\n}\r\n\r\n.bottomIdle2 {\r\n  animation: bottomClose 2s, hoverDown 5s infinite 3s;\r\n}\r\n\r\n.topIdle3 {\r\n  animation: topClose 2s, hoverUp 5s infinite 3.5s;\r\n}\r\n\r\n.bottomIdle3 {\r\n  animation: bottomClose 2s, hoverDown 5s infinite 3.5s;\r\n}\r\n\r\n.topOpen {\r\n  animation: topOpen 2s;\r\n  top: -100%;\r\n}\r\n\r\n.bottomOpen {\r\n  animation: bottomOpen 2s;\r\n  bottom: -100%;\r\n}\r\n\r\n@keyframes topOpen {\r\n  0% {\r\n    top: -2%;\r\n  }\r\n  100% {\r\n    top: -100%;\r\n  }\r\n}\r\n\r\n@keyframes bottomOpen {\r\n  0% {\r\n    bottom: -2%;\r\n  }\r\n  100% {\r\n    bottom: -100%;\r\n  }\r\n}\r\n\r\n@keyframes topClose {\r\n  0% {\r\n    top: -100%;\r\n  }\r\n  100% {\r\n    top: -7%;\r\n  }\r\n}\r\n\r\n@keyframes bottomClose {\r\n  0% {\r\n    bottom: -100%;\r\n  }\r\n  100% {\r\n    bottom: -7%;\r\n  }\r\n}\r\n\r\n@keyframes hoverUp {\r\n  0% {\r\n    top: -7%;\r\n  }\r\n\r\n  50% {\r\n    top: -3%;\r\n  }\r\n\r\n  100% {\r\n    top: -7%;\r\n  }\r\n}\r\n\r\n@keyframes hoverDown {\r\n  0% {\r\n    bottom: -7%;\r\n  }\r\n\r\n  50% {\r\n    bottom: -3%;\r\n  }\r\n\r\n  100% {\r\n    bottom: -7%;\r\n  }\r\n}\r\n\r\n.aspectRatio {\r\n  height: 90vh;\r\n  width: 160vh;\r\n  position: relative; /* If you want text inside of it */\r\n  margin: auto auto auto auto;\r\n}\r\n\r\n.myCardRow {\r\n  position: absolute;\r\n  width: 100%;\r\n  height: 100%;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: 0;\r\n  display: flex;\r\n  flex-direction: row;\r\n  justify-content: center;\r\n  align-items: center;\r\n}\r\n\r\n.myCard {\r\n  position: relative;\r\n\r\n  box-sizing: border-box;\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  margin: 4vh;\r\n\r\n  outline: none;\r\n  overflow: hidden;\r\n  border: 3px solid white;\r\n  outline: 3px solid white;\r\n}\r\n\r\n.smallCard {\r\n  height: 90vh;\r\n  width: 40vh;\r\n  animation: onSmall 2s;\r\n}\r\n\r\n.wideCard {\r\n  height: 100%;\r\n  width: 100%;\r\n  animation: onWiden 2s;\r\n  border-radius: 30px;\r\n}\r\n\r\n@keyframes onWiden {\r\n  0% {\r\n    height: 90vh;\r\n    width: 40vh;\r\n  }\r\n  100% {\r\n    height: 100%;\r\n    width: 100%;\r\n  }\r\n}\r\n\r\n@keyframes onSmall {\r\n  0% {\r\n    border-radius: 30px;\r\n    height: 100%;\r\n    width: 100%;\r\n  }\r\n  90% {\r\n    border-radius: 30px;\r\n  }\r\n  100% {\r\n    border-radius: 0px;\r\n    height: 90vh;\r\n    width: 40vh;\r\n  }\r\n}\r\n\r\n.myCard iframe {\r\n  width: 100%;\r\n  height: 100%;\r\n  border: none;\r\n}\r\n\r\n.myCard h1 {\r\n  font-size: 1000%;\r\n}\r\n\r\n.cover {\r\n  position: absolute;\r\n  width: auto;\r\n  height: 100%;\r\n  background-color: black;\r\n  animation: fadeIn2 2s;\r\n}\r\n\r\n.show {\r\n  opacity: 0.75;\r\n  animation: fadeOut2 1s;\r\n}\r\n\r\n.show:hover {\r\n  opacity: 1;\r\n  cursor: pointer;\r\n  animation: hoverOver 1s;\r\n}\r\n\r\n.display {\r\n  animation: fadeIn 2s;\r\n  opacity: 1;\r\n}\r\n\r\n@keyframes hoverOver {\r\n  0% {\r\n    opacity: 0.75;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.hide {\r\n  opacity: 0;\r\n  pointer-events: none;\r\n  animation: fadeOut 2s;\r\n}\r\n\r\n@keyframes fadeIn {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeIn2 {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 0.75;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut2 {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0.75;\r\n  }\r\n}\r\n\r\n.smCard {\r\n  color: white;\r\n  height: 70vh;\r\n  width: 31vh;\r\n  display: flex;\r\n  flex-direction: column;\r\n  background-color: dimgray;\r\n  position: absolute;\r\n  padding: 1%;\r\n  text-align: center;\r\n}\r\n\r\n.sml {\r\n  margin-right: 85vh;\r\n}\r\n\r\n.smr {\r\n  margin-left: 85vh;\r\n}\r\n\r\n.slideInLeft {\r\n  transform: translateX(0);\r\n  animation: slideInLeft 2s;\r\n}\r\n\r\n.slideInRight {\r\n  transform: translateX(0);\r\n  animation: slideInRight 2s;\r\n}\r\n\r\n.slideOutLeft {\r\n  transform: translateX(-60vh);\r\n  animation: slideOutLeft 2s;\r\n}\r\n\r\n.slideOutRight {\r\n  transform: translateX(60vh);\r\n  animation: slideOutRight 2s;\r\n}\r\n\r\n@keyframes slideInLeft {\r\n  0% {\r\n    transform: translateX(-60vh);\r\n    border-radius: 30px;\r\n  }\r\n  90% {\r\n    border-radius: 30px;\r\n  }\r\n  100% {\r\n    border-radius: 0px;\r\n    transform: translateX(0);\r\n  }\r\n}\r\n\r\n@keyframes slideInRight {\r\n  0% {\r\n    transform: translateX(60vh);\r\n  }\r\n  100% {\r\n    transform: translateX(0);\r\n  }\r\n}\r\n\r\n@keyframes slideOutLeft {\r\n  0% {\r\n    transform: translateX(0);\r\n  }\r\n  100% {\r\n    transform: translateX(-60vh);\r\n  }\r\n}\r\n\r\n@keyframes slideOutRight {\r\n  0% {\r\n    transform: translateX(0);\r\n  }\r\n  100% {\r\n    transform: translateX(60vh);\r\n  }\r\n}\r\n\r\n.smCard h2 {\r\n  margin: 0;\r\n}\r\n\r\n#overfun {\r\n  pointer-events: none;\r\n  position: fixed;\r\n  z-index: 1000;\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n}\r\n\r\n.overfun1 {\r\n  pointer-events: none;\r\n  animation: scroll1 1s;\r\n  animation-timing-function: ease-in;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scroll1 {\r\n  0% {\r\n    transform: translate(-2vw, 100vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(5vw, -100vh);\r\n  }\r\n}\r\n\r\n.overfun2 {\r\n  pointer-events: none;\r\n  animation: scroll2 1.8s;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scroll2 {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translate(20vw, 100vh);\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(-10vw, -100vh);\r\n  }\r\n}\r\n\r\n.overfun3 {\r\n  pointer-events: none;\r\n  animation: scroll3 1.4s;\r\n  position: absolute;\r\n  left: -2vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scroll3 {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(110vh);\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(-130vh);\r\n  }\r\n}\r\n\r\n#overfun2 {\r\n  pointer-events: none;\r\n  position: fixed;\r\n  z-index: 1000;\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  pointer-events: none;\r\n}\r\n\r\n.overfunup1 {\r\n  pointer-events: none;\r\n  animation: scrollup1 1s;\r\n  animation-timing-function: ease-in;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scrollup1 {\r\n  0% {\r\n    transform: translate(5vw, -100vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(-2vw, 100vh);\r\n  }\r\n}\r\n\r\n.overfunup2 {\r\n  pointer-events: none;\r\n  animation: scrollup2 1.8s;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scrollup2 {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translate(-10vw, -100vh);\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(20vw, 100vh);\r\n  }\r\n}\r\n", "",{"version":3,"sources":["webpack://./client/style.css"],"names":[],"mappings":"AAAA;EACE,iCAAiC;EACjC,SAAS;EACT,WAAW;EACX,cAAc;EACd,uBAAuB;EACvB,oBAAoB;AACtB;;AAEA;EACE,gBAAgB;EAChB,mBAAmB;AACrB;;AAEA;EACE,aAAa;EACb,uBAAuB;EACvB,mBAAmB;EACnB,WAAW;EACX,aAAa;EACb,kBAAkB;EAClB,gBAAgB;EAChB,eAAe;EACf,UAAU;AACZ;;AAEA;EACE,kBAAkB;EAClB,cAAc;EACd,WAAW;EACX,WAAW;EACX,oBAAoB;AACtB;;AAEA;EACE,QAAQ;AACV;;AAEA;EACE,WAAW;AACb;;AAEA;EACE,8CAA8C;AAChD;;AAEA;EACE,mDAAmD;AACrD;;AAEA;EACE,8CAA8C;AAChD;;AAEA;EACE,mDAAmD;AACrD;;AAEA;EACE,gDAAgD;AAClD;;AAEA;EACE,qDAAqD;AACvD;;AAEA;EACE,qBAAqB;EACrB,UAAU;AACZ;;AAEA;EACE,wBAAwB;EACxB,aAAa;AACf;;AAEA;EACE;IACE,QAAQ;EACV;EACA;IACE,UAAU;EACZ;AACF;;AAEA;EACE;IACE,WAAW;EACb;EACA;IACE,aAAa;EACf;AACF;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,QAAQ;EACV;AACF;;AAEA;EACE;IACE,aAAa;EACf;EACA;IACE,WAAW;EACb;AACF;;AAEA;EACE;IACE,QAAQ;EACV;;EAEA;IACE,QAAQ;EACV;;EAEA;IACE,QAAQ;EACV;AACF;;AAEA;EACE;IACE,WAAW;EACb;;EAEA;IACE,WAAW;EACb;;EAEA;IACE,WAAW;EACb;AACF;;AAEA;EACE,YAAY;EACZ,YAAY;EACZ,kBAAkB,EAAE,kCAAkC;EACtD,2BAA2B;AAC7B;;AAEA;EACE,kBAAkB;EAClB,WAAW;EACX,YAAY;EACZ,MAAM;EACN,OAAO;EACP,SAAS;EACT,QAAQ;EACR,SAAS;EACT,aAAa;EACb,mBAAmB;EACnB,uBAAuB;EACvB,mBAAmB;AACrB;;AAEA;EACE,kBAAkB;;EAElB,sBAAsB;EACtB,aAAa;EACb,uBAAuB;EACvB,mBAAmB;EACnB,WAAW;;EAEX,aAAa;EACb,gBAAgB;EAChB,uBAAuB;EACvB,wBAAwB;AAC1B;;AAEA;EACE,YAAY;EACZ,WAAW;EACX,qBAAqB;AACvB;;AAEA;EACE,YAAY;EACZ,WAAW;EACX,qBAAqB;EACrB,mBAAmB;AACrB;;AAEA;EACE;IACE,YAAY;IACZ,WAAW;EACb;EACA;IACE,YAAY;IACZ,WAAW;EACb;AACF;;AAEA;EACE;IACE,mBAAmB;IACnB,YAAY;IACZ,WAAW;EACb;EACA;IACE,mBAAmB;EACrB;EACA;IACE,kBAAkB;IAClB,YAAY;IACZ,WAAW;EACb;AACF;;AAEA;EACE,WAAW;EACX,YAAY;EACZ,YAAY;AACd;;AAEA;EACE,gBAAgB;AAClB;;AAEA;EACE,kBAAkB;EAClB,WAAW;EACX,YAAY;EACZ,uBAAuB;EACvB,qBAAqB;AACvB;;AAEA;EACE,aAAa;EACb,sBAAsB;AACxB;;AAEA;EACE,UAAU;EACV,eAAe;EACf,uBAAuB;AACzB;;AAEA;EACE,oBAAoB;EACpB,UAAU;AACZ;;AAEA;EACE;IACE,aAAa;EACf;EACA;IACE,UAAU;EACZ;AACF;;AAEA;EACE,UAAU;EACV,oBAAoB;EACpB,qBAAqB;AACvB;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,UAAU;EACZ;AACF;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,aAAa;EACf;AACF;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,UAAU;EACZ;AACF;;AAEA;EACE;IACE,UAAU;EACZ;EACA;IACE,aAAa;EACf;AACF;;AAEA;EACE,YAAY;EACZ,YAAY;EACZ,WAAW;EACX,aAAa;EACb,sBAAsB;EACtB,yBAAyB;EACzB,kBAAkB;EAClB,WAAW;EACX,kBAAkB;AACpB;;AAEA;EACE,kBAAkB;AACpB;;AAEA;EACE,iBAAiB;AACnB;;AAEA;EACE,wBAAwB;EACxB,yBAAyB;AAC3B;;AAEA;EACE,wBAAwB;EACxB,0BAA0B;AAC5B;;AAEA;EACE,4BAA4B;EAC5B,0BAA0B;AAC5B;;AAEA;EACE,2BAA2B;EAC3B,2BAA2B;AAC7B;;AAEA;EACE;IACE,4BAA4B;IAC5B,mBAAmB;EACrB;EACA;IACE,mBAAmB;EACrB;EACA;IACE,kBAAkB;IAClB,wBAAwB;EAC1B;AACF;;AAEA;EACE;IACE,2BAA2B;EAC7B;EACA;IACE,wBAAwB;EAC1B;AACF;;AAEA;EACE;IACE,wBAAwB;EAC1B;EACA;IACE,4BAA4B;EAC9B;AACF;;AAEA;EACE;IACE,wBAAwB;EAC1B;EACA;IACE,2BAA2B;EAC7B;AACF;;AAEA;EACE,SAAS;AACX;;AAEA;EACE,oBAAoB;EACpB,eAAe;EACf,aAAa;EACb,aAAa;EACb,uBAAuB;EACvB,mBAAmB;AACrB;;AAEA;EACE,oBAAoB;EACpB,qBAAqB;EACrB,kCAAkC;EAClC,kBAAkB;EAClB,WAAW;EACX,MAAM;EACN,UAAU;AACZ;;AAEA;EACE;IACE,iCAAiC;IACjC,UAAU;EACZ;EACA;IACE,UAAU;IACV,iCAAiC;EACnC;AACF;;AAEA;EACE,oBAAoB;EACpB,uBAAuB;EACvB,kBAAkB;EAClB,WAAW;EACX,MAAM;EACN,UAAU;AACZ;;AAEA;EACE;IACE,UAAU;IACV,iCAAiC;EACnC;EACA;IACE,UAAU;IACV,mCAAmC;EACrC;AACF;;AAEA;EACE,oBAAoB;EACpB,uBAAuB;EACvB,kBAAkB;EAClB,UAAU;EACV,MAAM;EACN,UAAU;AACZ;;AAEA;EACE;IACE,UAAU;IACV,4BAA4B;EAC9B;EACA;IACE,UAAU;IACV,6BAA6B;EAC/B;AACF;;AAEA;EACE,oBAAoB;EACpB,eAAe;EACf,aAAa;EACb,aAAa;EACb,uBAAuB;EACvB,mBAAmB;EACnB,oBAAoB;AACtB;;AAEA;EACE,oBAAoB;EACpB,uBAAuB;EACvB,kCAAkC;EAClC,kBAAkB;EAClB,WAAW;EACX,MAAM;EACN,UAAU;AACZ;;AAEA;EACE;IACE,iCAAiC;IACjC,UAAU;EACZ;EACA;IACE,UAAU;IACV,iCAAiC;EACnC;AACF;;AAEA;EACE,oBAAoB;EACpB,yBAAyB;EACzB,kBAAkB;EAClB,WAAW;EACX,MAAM;EACN,UAAU;AACZ;;AAEA;EACE;IACE,UAAU;IACV,mCAAmC;EACrC;EACA;IACE,UAAU;IACV,iCAAiC;EACnC;AACF","sourcesContent":["#root {\r\n  font-family: 'Roboto', sans-serif;\r\n  margin: 0;\r\n  width: 100%;\r\n  display: block;\r\n  justify-content: center;\r\n  --animation-time: 2s;\r\n}\r\n\r\nhtml {\r\n  overflow: hidden;\r\n  height: max-content;\r\n}\r\n\r\n.myRow {\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: auto;\r\n  height: 100vh;\r\n  position: relative;\r\n  min-width: 600px;\r\n  min-width: 100%;\r\n  padding: 0;\r\n}\r\n\r\n.overlay {\r\n  position: absolute;\r\n  display: block;\r\n  width: 100%;\r\n  height: 25%;\r\n  pointer-events: none;\r\n}\r\n\r\n.top {\r\n  top: -7%;\r\n}\r\n\r\n.bottom {\r\n  bottom: -7%;\r\n}\r\n\r\n.topIdle1 {\r\n  animation: topClose 2s, hoverUp 5s infinite 2s;\r\n}\r\n\r\n.bottomIdle1 {\r\n  animation: bottomClose 2s, hoverDown 5s infinite 2s;\r\n}\r\n\r\n.topIdle2 {\r\n  animation: topClose 2s, hoverUp 5s infinite 3s;\r\n}\r\n\r\n.bottomIdle2 {\r\n  animation: bottomClose 2s, hoverDown 5s infinite 3s;\r\n}\r\n\r\n.topIdle3 {\r\n  animation: topClose 2s, hoverUp 5s infinite 3.5s;\r\n}\r\n\r\n.bottomIdle3 {\r\n  animation: bottomClose 2s, hoverDown 5s infinite 3.5s;\r\n}\r\n\r\n.topOpen {\r\n  animation: topOpen 2s;\r\n  top: -100%;\r\n}\r\n\r\n.bottomOpen {\r\n  animation: bottomOpen 2s;\r\n  bottom: -100%;\r\n}\r\n\r\n@keyframes topOpen {\r\n  0% {\r\n    top: -2%;\r\n  }\r\n  100% {\r\n    top: -100%;\r\n  }\r\n}\r\n\r\n@keyframes bottomOpen {\r\n  0% {\r\n    bottom: -2%;\r\n  }\r\n  100% {\r\n    bottom: -100%;\r\n  }\r\n}\r\n\r\n@keyframes topClose {\r\n  0% {\r\n    top: -100%;\r\n  }\r\n  100% {\r\n    top: -7%;\r\n  }\r\n}\r\n\r\n@keyframes bottomClose {\r\n  0% {\r\n    bottom: -100%;\r\n  }\r\n  100% {\r\n    bottom: -7%;\r\n  }\r\n}\r\n\r\n@keyframes hoverUp {\r\n  0% {\r\n    top: -7%;\r\n  }\r\n\r\n  50% {\r\n    top: -3%;\r\n  }\r\n\r\n  100% {\r\n    top: -7%;\r\n  }\r\n}\r\n\r\n@keyframes hoverDown {\r\n  0% {\r\n    bottom: -7%;\r\n  }\r\n\r\n  50% {\r\n    bottom: -3%;\r\n  }\r\n\r\n  100% {\r\n    bottom: -7%;\r\n  }\r\n}\r\n\r\n.aspectRatio {\r\n  height: 90vh;\r\n  width: 160vh;\r\n  position: relative; /* If you want text inside of it */\r\n  margin: auto auto auto auto;\r\n}\r\n\r\n.myCardRow {\r\n  position: absolute;\r\n  width: 100%;\r\n  height: 100%;\r\n  top: 0;\r\n  left: 0;\r\n  bottom: 0;\r\n  right: 0;\r\n  margin: 0;\r\n  display: flex;\r\n  flex-direction: row;\r\n  justify-content: center;\r\n  align-items: center;\r\n}\r\n\r\n.myCard {\r\n  position: relative;\r\n\r\n  box-sizing: border-box;\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  margin: 4vh;\r\n\r\n  outline: none;\r\n  overflow: hidden;\r\n  border: 3px solid white;\r\n  outline: 3px solid white;\r\n}\r\n\r\n.smallCard {\r\n  height: 90vh;\r\n  width: 40vh;\r\n  animation: onSmall 2s;\r\n}\r\n\r\n.wideCard {\r\n  height: 100%;\r\n  width: 100%;\r\n  animation: onWiden 2s;\r\n  border-radius: 30px;\r\n}\r\n\r\n@keyframes onWiden {\r\n  0% {\r\n    height: 90vh;\r\n    width: 40vh;\r\n  }\r\n  100% {\r\n    height: 100%;\r\n    width: 100%;\r\n  }\r\n}\r\n\r\n@keyframes onSmall {\r\n  0% {\r\n    border-radius: 30px;\r\n    height: 100%;\r\n    width: 100%;\r\n  }\r\n  90% {\r\n    border-radius: 30px;\r\n  }\r\n  100% {\r\n    border-radius: 0px;\r\n    height: 90vh;\r\n    width: 40vh;\r\n  }\r\n}\r\n\r\n.myCard iframe {\r\n  width: 100%;\r\n  height: 100%;\r\n  border: none;\r\n}\r\n\r\n.myCard h1 {\r\n  font-size: 1000%;\r\n}\r\n\r\n.cover {\r\n  position: absolute;\r\n  width: auto;\r\n  height: 100%;\r\n  background-color: black;\r\n  animation: fadeIn2 2s;\r\n}\r\n\r\n.show {\r\n  opacity: 0.75;\r\n  animation: fadeOut2 1s;\r\n}\r\n\r\n.show:hover {\r\n  opacity: 1;\r\n  cursor: pointer;\r\n  animation: hoverOver 1s;\r\n}\r\n\r\n.display {\r\n  animation: fadeIn 2s;\r\n  opacity: 1;\r\n}\r\n\r\n@keyframes hoverOver {\r\n  0% {\r\n    opacity: 0.75;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.hide {\r\n  opacity: 0;\r\n  pointer-events: none;\r\n  animation: fadeOut 2s;\r\n}\r\n\r\n@keyframes fadeIn {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeIn2 {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 0.75;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut2 {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0.75;\r\n  }\r\n}\r\n\r\n.smCard {\r\n  color: white;\r\n  height: 70vh;\r\n  width: 31vh;\r\n  display: flex;\r\n  flex-direction: column;\r\n  background-color: dimgray;\r\n  position: absolute;\r\n  padding: 1%;\r\n  text-align: center;\r\n}\r\n\r\n.sml {\r\n  margin-right: 85vh;\r\n}\r\n\r\n.smr {\r\n  margin-left: 85vh;\r\n}\r\n\r\n.slideInLeft {\r\n  transform: translateX(0);\r\n  animation: slideInLeft 2s;\r\n}\r\n\r\n.slideInRight {\r\n  transform: translateX(0);\r\n  animation: slideInRight 2s;\r\n}\r\n\r\n.slideOutLeft {\r\n  transform: translateX(-60vh);\r\n  animation: slideOutLeft 2s;\r\n}\r\n\r\n.slideOutRight {\r\n  transform: translateX(60vh);\r\n  animation: slideOutRight 2s;\r\n}\r\n\r\n@keyframes slideInLeft {\r\n  0% {\r\n    transform: translateX(-60vh);\r\n    border-radius: 30px;\r\n  }\r\n  90% {\r\n    border-radius: 30px;\r\n  }\r\n  100% {\r\n    border-radius: 0px;\r\n    transform: translateX(0);\r\n  }\r\n}\r\n\r\n@keyframes slideInRight {\r\n  0% {\r\n    transform: translateX(60vh);\r\n  }\r\n  100% {\r\n    transform: translateX(0);\r\n  }\r\n}\r\n\r\n@keyframes slideOutLeft {\r\n  0% {\r\n    transform: translateX(0);\r\n  }\r\n  100% {\r\n    transform: translateX(-60vh);\r\n  }\r\n}\r\n\r\n@keyframes slideOutRight {\r\n  0% {\r\n    transform: translateX(0);\r\n  }\r\n  100% {\r\n    transform: translateX(60vh);\r\n  }\r\n}\r\n\r\n.smCard h2 {\r\n  margin: 0;\r\n}\r\n\r\n#overfun {\r\n  pointer-events: none;\r\n  position: fixed;\r\n  z-index: 1000;\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n}\r\n\r\n.overfun1 {\r\n  pointer-events: none;\r\n  animation: scroll1 1s;\r\n  animation-timing-function: ease-in;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scroll1 {\r\n  0% {\r\n    transform: translate(-2vw, 100vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(5vw, -100vh);\r\n  }\r\n}\r\n\r\n.overfun2 {\r\n  pointer-events: none;\r\n  animation: scroll2 1.8s;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scroll2 {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translate(20vw, 100vh);\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(-10vw, -100vh);\r\n  }\r\n}\r\n\r\n.overfun3 {\r\n  pointer-events: none;\r\n  animation: scroll3 1.4s;\r\n  position: absolute;\r\n  left: -2vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scroll3 {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(110vh);\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(-130vh);\r\n  }\r\n}\r\n\r\n#overfun2 {\r\n  pointer-events: none;\r\n  position: fixed;\r\n  z-index: 1000;\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  pointer-events: none;\r\n}\r\n\r\n.overfunup1 {\r\n  pointer-events: none;\r\n  animation: scrollup1 1s;\r\n  animation-timing-function: ease-in;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scrollup1 {\r\n  0% {\r\n    transform: translate(5vw, -100vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(-2vw, 100vh);\r\n  }\r\n}\r\n\r\n.overfunup2 {\r\n  pointer-events: none;\r\n  animation: scrollup2 1.8s;\r\n  position: absolute;\r\n  left: -10vw;\r\n  top: 0;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes scrollup2 {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translate(-10vw, -100vh);\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translate(20vw, 100vh);\r\n  }\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "html {\r\n  overflow: hidden;\r\n}\r\n\r\n::-webkit-scrollbar {\r\n  display: none;\r\n}\r\n\r\n.hidden {\r\n  display: none;\r\n}\r\n\r\n#root {\r\n  overflow: hidden;\r\n}\r\n\r\n.page {\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: 100vw;\r\n  height: 100vh;\r\n  position: 'absolute';\r\n  top: 0;\r\n  left: 0;\r\n  display: 'flex';\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n}\r\n\r\n.openAnim {\r\n  position: absolute;\r\n  width: 100vw;\r\n  z-index: 2;\r\n}\r\n\r\n.page img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  bottom: 0;\r\n  margin: auto;\r\n}\r\n\r\n.openAnim img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  bottom: 0;\r\n  margin: auto;\r\n}\r\n\r\n.pageimg {\r\n  pointer-events: none;\r\n  overflow: hidden;\r\n}\r\n\r\n.overlayHolder {\r\n  position: absolute;\r\n  overflow: hidden;\r\n  top: 0;\r\n  bottom: 0;\r\n  margin: auto;\r\n  width: 1920px;\r\n  height: 1080px;\r\n}\r\n\r\n.overlay {\r\n  pointer-events: all;\r\n  overflow: hidden;\r\n  opacity: 0.75;\r\n  transition: opacity 1s;\r\n  object-fit: cover;\r\n}\r\n\r\n.overlay:hover {\r\n  pointer-events: all;\r\n  cursor: pointer;\r\n  opacity: 1;\r\n}\r\n\r\n@keyframes float1 {\r\n  0% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n  33% {\r\n    transform: translate(-1vw, 2vh);\r\n  }\r\n  66% {\r\n    transform: translate(2vw, 3vh);\r\n  }\r\n  100% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n}\r\n\r\n@keyframes hover1 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 6vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n@keyframes upIn {\r\n  0% {\r\n    transform: translateY(100vh);\r\n  }\r\n  100% {\r\n    transform: translateY(0vh);\r\n  }\r\n}\r\n\r\n@keyframes space1 {\r\n  0% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n  }\r\n  100% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n  }\r\n}\r\n\r\n@keyframes page1 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #9e9e9e;\r\n  }\r\n}\r\n\r\n@keyframes page1c {\r\n  0% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes page2 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #f7c6f9;\r\n  }\r\n}\r\n\r\n@keyframes page2c {\r\n  0% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeIn {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1 {\r\n  animation: upIn 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space12 {\r\n  animation: upIn 3s ease-in-out, fadein 5s, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n}\r\n\r\n.spaceOverlay {\r\n  animation: space1 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space2 {\r\n  animation: upIn 2.5s ease-in-out;\r\n}\r\n\r\n.space3 {\r\n  animation: upIn 3.65s ease-in-out, float1 16s infinite 3.65s ease-in-out;\r\n}\r\n\r\n.page1 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1 1.75s;\r\n  background-color: #9e9e9e;\r\n}\r\n\r\n.page1c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.page2 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2 1.75s;\r\n  background-color: #f7c6f9;\r\n}\r\n\r\n.page2c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.cloudsLIn {\r\n  animation: cloudsLIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsLIn {\r\n  0% {\r\n    top: -100vh;\r\n    left: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    left: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.cloudsRIn {\r\n  animation: cloudsRIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsRIn {\r\n  0% {\r\n    top: -100vh;\r\n    right: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    right: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1c {\r\n  animation: downOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space12c {\r\n  animation: downFadeOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.space2c {\r\n  animation: downOut 2.5s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space3c {\r\n  animation: downOut 3.65s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes downOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOutOverlay {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  40% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes space1c {\r\n  0% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes hover2 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 12vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n.city1 {\r\n  animation: upIn 2.975s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.city2 {\r\n  animation: upIn 3s ease-in-out, hover1 14s infinite ease-in-out 1s;\r\n}\r\n\r\n.city3 {\r\n  animation: upIn 3.1s ease-in-out, hover1 15s infinite ease-in-out 0.5s;\r\n}\r\n\r\n.city1c {\r\n  animation: downOut 3.2s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city2c {\r\n  animation: downOut 3s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city3c {\r\n  animation: downOut 2.75s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city5c {\r\n  animation: downFadeOut 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.overlayc {\r\n  animation: downFadeOutOverlay 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.textIn {\r\n  opacity: 1;\r\n  animation: fadeIn 3s;\r\n}\r\n\r\n.textOut {\r\n  opacity: 0;\r\n  animation: fadeOut 3s;\r\n}\r\n\r\n.text {\r\n  z-index: 10;\r\n  background-color: #00000081;\r\n  color: white;\r\n  border-radius: 15px;\r\n  padding: 3%;\r\n  max-width: 40%;\r\n}\r\n\r\n.text p {\r\n  margin: 0;\r\n}\r\n\r\n.topbar {\r\n  width: 100%;\r\n  height: min-content;\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  background-color: #f7c6f9;\r\n  text-align: center;\r\n  cursor: pointer;\r\n}", "",{"version":3,"sources":["webpack://./client/style.css"],"names":[],"mappings":"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","sourcesContent":["html {\r\n  overflow: hidden;\r\n}\r\n\r\n::-webkit-scrollbar {\r\n  display: none;\r\n}\r\n\r\n.hidden {\r\n  display: none;\r\n}\r\n\r\n#root {\r\n  overflow: hidden;\r\n}\r\n\r\n.page {\r\n  justify-content: center;\r\n  align-items: center;\r\n  width: 100vw;\r\n  height: 100vh;\r\n  position: 'absolute';\r\n  top: 0;\r\n  left: 0;\r\n  display: 'flex';\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n}\r\n\r\n.openAnim {\r\n  position: absolute;\r\n  width: 100vw;\r\n  z-index: 2;\r\n}\r\n\r\n.page img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  bottom: 0;\r\n  margin: auto;\r\n}\r\n\r\n.openAnim img {\r\n  position: absolute;\r\n  overflow-y: hidden;\r\n  overflow-x: visible;\r\n  top: 0;\r\n  bottom: 0;\r\n  margin: auto;\r\n}\r\n\r\n.pageimg {\r\n  pointer-events: none;\r\n  overflow: hidden;\r\n}\r\n\r\n.overlayHolder {\r\n  position: absolute;\r\n  overflow: hidden;\r\n  top: 0;\r\n  bottom: 0;\r\n  margin: auto;\r\n  width: 1920px;\r\n  height: 1080px;\r\n}\r\n\r\n.overlay {\r\n  pointer-events: all;\r\n  overflow: hidden;\r\n  opacity: 0.75;\r\n  transition: opacity 1s;\r\n  object-fit: cover;\r\n}\r\n\r\n.overlay:hover {\r\n  pointer-events: all;\r\n  cursor: pointer;\r\n  opacity: 1;\r\n}\r\n\r\n@keyframes float1 {\r\n  0% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n  33% {\r\n    transform: translate(-1vw, 2vh);\r\n  }\r\n  66% {\r\n    transform: translate(2vw, 3vh);\r\n  }\r\n  100% {\r\n    transform: translate(0vw, 0vh);\r\n  }\r\n}\r\n\r\n@keyframes hover1 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 6vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n@keyframes upIn {\r\n  0% {\r\n    transform: translateY(100vh);\r\n  }\r\n  100% {\r\n    transform: translateY(0vh);\r\n  }\r\n}\r\n\r\n@keyframes space1 {\r\n  0% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n  }\r\n  100% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n  }\r\n}\r\n\r\n@keyframes page1 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #9e9e9e;\r\n  }\r\n}\r\n\r\n@keyframes page1c {\r\n  0% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #9e9e9e;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes page2 {\r\n  0% {\r\n    background-color: transparent;\r\n  }\r\n  100% {\r\n    background-color: #f7c6f9;\r\n  }\r\n}\r\n\r\n@keyframes page2c {\r\n  0% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    background-color: #f7c6f9;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    background-color: transparent;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeIn {\r\n  0% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1 {\r\n  animation: upIn 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space12 {\r\n  animation: upIn 3s ease-in-out, fadein 5s, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n}\r\n\r\n.spaceOverlay {\r\n  animation: space1 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.space2 {\r\n  animation: upIn 2.5s ease-in-out;\r\n}\r\n\r\n.space3 {\r\n  animation: upIn 3.65s ease-in-out, float1 16s infinite 3.65s ease-in-out;\r\n}\r\n\r\n.page1 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1 1.75s;\r\n  background-color: #9e9e9e;\r\n}\r\n\r\n.page1c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page1c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.page2 {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2 1.75s;\r\n  background-color: #f7c6f9;\r\n}\r\n\r\n.page2c {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  height: 100vh;\r\n  width: 100vw;\r\n  animation: page2c 3s;\r\n  background-color: transparent;\r\n}\r\n\r\n.cloudsLIn {\r\n  animation: cloudsLIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsLIn {\r\n  0% {\r\n    top: -100vh;\r\n    left: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    left: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.cloudsRIn {\r\n  animation: cloudsRIn 2s ease-in-out 0.75s;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes cloudsRIn {\r\n  0% {\r\n    top: -100vh;\r\n    right: -30vw;\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    top: 200vh;\r\n    right: -40vw;\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n.space1c {\r\n  animation: downOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space12c {\r\n  animation: downFadeOut 3s ease-in-out, hover1 16s infinite ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.space2c {\r\n  animation: downOut 2.5s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.space3c {\r\n  animation: downOut 3.65s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n@keyframes downOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOut {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes downFadeOutOverlay {\r\n  0% {\r\n    transform: translateY(0vh);\r\n    opacity: 1;\r\n  }\r\n  40% {\r\n    opacity: 0;\r\n  }\r\n  100% {\r\n    transform: translateY(100vh);\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes space1c {\r\n  0% {\r\n    transform: translate(36%, 28%) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    transform: translate(36%, 100vh) rotate(12deg);\r\n    opacity: 1;\r\n  }\r\n}\r\n\r\n@keyframes fadeOut {\r\n  0% {\r\n    opacity: 1;\r\n  }\r\n  100% {\r\n    opacity: 0;\r\n  }\r\n}\r\n\r\n@keyframes hover2 {\r\n  0% {\r\n    top: 0;\r\n  }\r\n  50% {\r\n    top: 12vh;\r\n  }\r\n  100% {\r\n    top: 0vh;\r\n  }\r\n}\r\n\r\n.city1 {\r\n  animation: upIn 2.975s ease-in-out, hover1 16s infinite ease-in-out;\r\n}\r\n\r\n.city2 {\r\n  animation: upIn 3s ease-in-out, hover1 14s infinite ease-in-out 1s;\r\n}\r\n\r\n.city3 {\r\n  animation: upIn 3.1s ease-in-out, hover1 15s infinite ease-in-out 0.5s;\r\n}\r\n\r\n.city1c {\r\n  animation: downOut 3.2s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city2c {\r\n  animation: downOut 3s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city3c {\r\n  animation: downOut 2.75s ease-in-out;\r\n  opacity: 0;\r\n}\r\n\r\n.city5c {\r\n  animation: downFadeOut 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.overlayc {\r\n  animation: downFadeOutOverlay 3s ease-in-out;\r\n  background-color: transparent;\r\n  opacity: 0;\r\n}\r\n\r\n.textIn {\r\n  opacity: 1;\r\n  animation: fadeIn 3s;\r\n}\r\n\r\n.textOut {\r\n  opacity: 0;\r\n  animation: fadeOut 3s;\r\n}\r\n\r\n.text {\r\n  z-index: 10;\r\n  background-color: #00000081;\r\n  color: white;\r\n  border-radius: 15px;\r\n  padding: 3%;\r\n  max-width: 40%;\r\n}\r\n\r\n.text p {\r\n  margin: 0;\r\n}\r\n\r\n.topbar {\r\n  width: 100%;\r\n  height: min-content;\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  background-color: #f7c6f9;\r\n  text-align: center;\r\n  cursor: pointer;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -3524,6 +3577,10 @@ module.exports = function cssWithMappingToString(item) {
       content = _item[1],
       cssMapping = _item[3];
 
+  if (!cssMapping) {
+    return content;
+  }
+
   if (typeof btoa === "function") {
     // eslint-disable-next-line no-undef
     var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(cssMapping))));
@@ -3624,6 +3681,132 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./client/img/new/city1.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city1.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city1.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city2.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city2.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city2.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city3.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city3.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city3.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city4.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city4.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city4.png");
+
+/***/ }),
+
+/***/ "./client/img/new/city5.png":
+/*!**********************************!*\
+  !*** ./client/img/new/city5.png ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/city5.png");
+
+/***/ }),
+
+/***/ "./client/img/new/space12.png":
+/*!************************************!*\
+  !*** ./client/img/new/space12.png ***!
+  \************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/space12.png");
+
+/***/ }),
+
+/***/ "./client/img/new/space2.png":
+/*!***********************************!*\
+  !*** ./client/img/new/space2.png ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/space2.png");
+
+/***/ }),
+
+/***/ "./client/img/new/space3.png":
+/*!***********************************!*\
+  !*** ./client/img/new/space3.png ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/space3.png");
+
+/***/ }),
+
+/***/ "./client/img/new/space4.png":
+/*!***********************************!*\
+  !*** ./client/img/new/space4.png ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__webpack_require__.p + "client/img/new/space4.png");
+
+/***/ }),
+
 /***/ "./client/img/projecthorizonex.gif":
 /*!*****************************************!*\
   !*** ./client/img/projecthorizonex.gif ***!
@@ -3695,7 +3878,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var name = "firebase";
-var version = "8.7.1";
+var version = "8.10.0";
 
 /**
  * @license
@@ -34071,7 +34254,7 @@ function __spreadArray(to, from, pack) {
             ar[i] = from[i];
         }
     }
-    return to.concat(ar || from);
+    return to.concat(ar || Array.prototype.slice.call(from));
 }
 
 function __await(v) {
@@ -34265,6 +34448,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./img/clouds.png */ "./client/img/clouds.png");
 /* harmony import */ var _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./img/clouds2.png */ "./client/img/clouds2.png");
 /* harmony import */ var _img_clouds3_png__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./img/clouds3.png */ "./client/img/clouds3.png");
+/* harmony import */ var _img_new_space12_png__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./img/new/space12.png */ "./client/img/new/space12.png");
+/* harmony import */ var _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./img/new/space2.png */ "./client/img/new/space2.png");
+/* harmony import */ var _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./img/new/space3.png */ "./client/img/new/space3.png");
+/* harmony import */ var _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./img/new/space4.png */ "./client/img/new/space4.png");
+/* harmony import */ var _img_new_city1_png__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./img/new/city1.png */ "./client/img/new/city1.png");
+/* harmony import */ var _img_new_city2_png__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./img/new/city2.png */ "./client/img/new/city2.png");
+/* harmony import */ var _img_new_city3_png__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./img/new/city3.png */ "./client/img/new/city3.png");
+/* harmony import */ var _img_new_city4_png__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./img/new/city4.png */ "./client/img/new/city4.png");
+/* harmony import */ var _img_new_city5_png__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./img/new/city5.png */ "./client/img/new/city5.png");
 
 
 
@@ -34283,557 +34475,522 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function Card(props) {
-  const top = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const bot = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const card = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
-  const [isReady, setReady] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const [content, setContent] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  var timeout = '';
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    console.log(props);
-  }, [props]);
 
-  if (props.sm) {
-    if (props.l) {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-        className: props.hidden ? "myCard smCard sml slideOutLeft" : "myCard smCard sml slideInLeft",
-        ref: card
-      }, props.children, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-        src: _img_topR_png__WEBPACK_IMPORTED_MODULE_5__.default,
-        ref: top,
-        className: "top overlay topIdle1",
-        draggable: "false"
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-        src: _img_bottomR_png__WEBPACK_IMPORTED_MODULE_8__.default,
-        ref: bot,
-        className: "bottom overlay bottomIdle1",
-        draggable: "false"
-      }));
-    } else {
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-        className: props.hidden ? "myCard smCard smr slideOutRight" : "myCard smCard smr slideInRight",
-        ref: card
-      }, props.children, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-        src: _img_topL_png__WEBPACK_IMPORTED_MODULE_6__.default,
-        ref: top,
-        className: "top overlay topIdle3",
-        draggable: "false"
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-        src: _img_bottomL_png__WEBPACK_IMPORTED_MODULE_7__.default,
-        ref: bot,
-        className: "bottom overlay bottomIdle3",
-        draggable: "false"
-      }));
+
+
+
+
+
+
+
+var timeout = '';
+
+function Web(props) {
+  const [page, setPage] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("page")) || 0);
+  const [isReady, setReady] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
+  const [children, setChildren] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children));
+  const scroller = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  var timeout = '';
+  const arrowDown = useKeyPress("ArrowDown");
+  const arrowUp = useKeyPress("ArrowUp");
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useLayoutEffect)(() => {
+    scroller.current.scrollTop = 1;
+  }, []);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    detectKey();
+  }, [arrowDown, arrowUp]);
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    var temp = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
+    temp[page] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page], {
+      open: true
+    });
+    setChildren(temp);
+  }, []);
+
+  function nextPage() {
+    if (page != children.length - 1) {
+      var temp = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
+      temp[page] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page], {
+        open: false
+      });
+      console.log("scrolling down");
+      localStorage.setItem("page", JSON.stringify(page + 1));
+      setPage(page + 1);
+      setReady(false);
+      temp[page + 1] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page + 1], {
+        open: true
+      });
+      setChildren(temp);
+      timeout = setTimeout(() => {
+        setReady(true);
+      }, 5000);
     }
   }
 
-  if (props.expandable) {
-    function open() {
-      if (!isReady) {
-        return;
-      }
-
-      props.setFocus(true);
+  function prevPage() {
+    if (page != 0) {
+      var temp = react__WEBPACK_IMPORTED_MODULE_0__.Children.toArray(props.children);
+      temp[page] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page], {
+        open: false
+      });
+      console.log("scrolling up");
+      localStorage.setItem("page", JSON.stringify(page - 1));
+      setPage(page - 1);
       setReady(false);
-      setContent(props.children);
-      console.log("hi");
-      overlay.current.className = "cover hide";
-      top.current.className = "overlay topOpen";
-      bot.current.className = "overlay bottomOpen";
-      card.current.className = "myCard wideCard";
+      temp[page - 1] = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(temp[page - 1], {
+        open: true
+      });
+      setChildren(temp);
       timeout = setTimeout(() => {
         setReady(true);
-      }, 2000);
+      }, 5000);
+    }
+  }
+
+  function detectKey() {
+    if (!isReady) {
+      return;
     }
 
-    function close() {
-      if (!isReady) {
-        return;
+    if (arrowUp) {
+      prevPage();
+    } else if (arrowDown) {
+      nextPage();
+    }
+  }
+
+  function detectWheel(e) {
+    if (!isReady) {
+      return;
+    }
+
+    if (e.deltaY < 0) {
+      prevPage();
+    } else if (e.deltaY > 0) {
+      nextPage();
+    }
+
+    window.scrollTo(0, 1);
+  }
+
+  var swipeY = 0;
+
+  function onSwipeStart(e) {
+    swipeY = e.touches[0].clientY;
+  }
+
+  function onSwipeEnd(e) {
+    if (!isReady) {
+      return;
+    }
+
+    var deadband = 100;
+    console.log(e);
+
+    if (e.changedTouches[0].clientY > swipeY + deadband) {
+      prevPage();
+    } else if (e.changedTouches[0].clientY < swipeY - deadband) {
+      nextPage();
+    }
+  }
+
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    onWheel: detectWheel,
+    onKeyPress: detectKey,
+    onTouchStart: onSwipeStart,
+    onTouchEnd: onSwipeEnd,
+    ref: scroller,
+    style: {
+      height: "100vh",
+      width: "100vw",
+      position: "fixed",
+      top: 0,
+      left: 0,
+      zIndex: 10000
+    }
+  }, children));
+}
+
+function City(props) {
+  const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const page = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const textRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("none");
+  const delay = props.delay || 1.5;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    console.log(props.open);
+
+    if (props.open) {
+      page.current.style.display = "block";
+      container.current.style.display = "none";
+      overlay.current.style.display = "block";
+      page.current.className = "page2";
+      setTimeout(() => {
+        container.current.style.display = "flex";
+      }, delay * 1000);
+    } else if (props.open == false) {
+      mouseOut();
+      overlay.current.style.display = "none";
+      page.current.className = "page2c";
+      setTimeout(() => {
+        container.current.style.display = "none";
+        page.current.style.display = "none";
+      }, 5000);
+    }
+  }, [props]);
+
+  function closeOut() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder overlayc"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_11__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(235%, 27%)",
+        width: "460px",
+        height: "480px"
       }
-
-      props.setFocus(false);
-      setContent('');
-      setReady(false);
-      card.current.className = "myCard smallCard";
-      overlay.current.className = "cover show";
-      bot.current.className = "bottom overlay bottomIdle2";
-      top.current.className = "top overlay topIdle2";
-      timeout = setTimeout(() => {
-        setReady(true);
-      }, 2000);
-    }
-
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      className: "myCard smallCard",
-      ref: card,
-      onClick: open,
-      onMouseLeave: close
-    }, content, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-      src: props.coverImg,
-      className: "show cover",
-      ref: overlay
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city5_png__WEBPACK_IMPORTED_MODULE_23__.default,
+      className: "pageimg city5c"
     }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-      src: _img_topL_png__WEBPACK_IMPORTED_MODULE_6__.default,
-      ref: top,
-      className: "top overlay topIdle2",
-      draggable: "false"
+      src: _img_new_city4_png__WEBPACK_IMPORTED_MODULE_22__.default,
+      className: "pageimg city3c"
     }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-      src: _img_bottomR_png__WEBPACK_IMPORTED_MODULE_8__.default,
-      ref: bot,
-      className: "bottom overlay bottomIdle2",
-      draggable: "false"
+      src: _img_new_city3_png__WEBPACK_IMPORTED_MODULE_21__.default,
+      className: "pageimg city2c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city1_png__WEBPACK_IMPORTED_MODULE_19__.default,
+      className: "pageimg city1c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city2_png__WEBPACK_IMPORTED_MODULE_20__.default,
+      className: "pageimg city2c"
     }));
   }
 
+  function openIn() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder city1"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      onMouseEnter: mouseIn,
+      onMouseLeave: check,
+      src: _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_11__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(235%, 27%)",
+        width: "460px",
+        height: "480px"
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city5_png__WEBPACK_IMPORTED_MODULE_23__.default,
+      className: "pageimg city1"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city4_png__WEBPACK_IMPORTED_MODULE_22__.default,
+      className: "pageimg city3"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city3_png__WEBPACK_IMPORTED_MODULE_21__.default,
+      className: "pageimg city2"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city1_png__WEBPACK_IMPORTED_MODULE_19__.default,
+      className: "pageimg city1"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_city2_png__WEBPACK_IMPORTED_MODULE_20__.default,
+      className: "pageimg city2"
+    }));
+  }
+
+  var timeout = '';
+
+  function mouseIn() {
+    textRef.current.className = "textIn text";
+    clearTimeout(timeout);
+  }
+
+  function check() {
+    timeout = setTimeout(() => {
+      textRef.current.className = "textOut text";
+      mouseOut();
+    }, 3000);
+  }
+
+  function up() {
+    clearTimeout(timeout);
+  }
+
+  function mouseOut() {
+    if (textRef.current.className == "textIn text") {
+      textRef.current.className = "textOut text";
+    }
+
+    setTimeout(() => {
+      textRef.current.className = "hidden";
+    }, 4000);
+  }
+
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "myCard wideCard",
-    ref: card
+    ref: page,
+    style: {
+      display: "none"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: overlay,
+    className: "openAnim"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-    src: _img_topL_png__WEBPACK_IMPORTED_MODULE_6__.default,
-    ref: top,
-    className: "top overlay topIdle",
-    draggable: "false"
-  }), props.children, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-    src: _img_bottomR_png__WEBPACK_IMPORTED_MODULE_8__.default,
-    ref: bot,
-    className: "bottom overlay bottomIdle",
-    draggable: "false"
-  }));
+    src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
+    className: "pageimg cloudsRIn"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
+    className: "pageimg cloudsLIn"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: container,
+    style: props.style,
+    className: "page"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    className: "hidden text",
+    ref: textRef,
+    onMouseEnter: up,
+    onMouseLeave: check
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "This project is called CS Schedule and is a calendar and an online communication platform that allows students to study together. This was developed during the COVID-19 pandemic to prevent online students at my school from missing out from studying with others.")), props.open ? openIn() : closeOut()));
 }
 
-Card.defaultProps = {
-  coverImg: _img_download_jpg__WEBPACK_IMPORTED_MODULE_9__.default
-};
+function Space(props) {
+  const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const page = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const textRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("none");
+  const [text, showText] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const delay = props.delay || 1.5;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    console.log(props.open);
 
-function Row(props) {
-  const [isFocused, setFocus] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+    if (props.open) {
+      page.current.style.display = "block";
+      container.current.style.display = "none";
+      overlay.current.style.display = "block";
+      page.current.className = "page1";
+      setTimeout(() => {
+        container.current.style.display = "flex";
+      }, delay * 1000);
+    } else if (props.open == false) {
+      mouseOut();
+      overlay.current.style.display = "none";
+      page.current.className = "page1c";
+      setTimeout(() => {
+        container.current.style.display = "none";
+        page.current.style.display = "none";
+      }, 5000);
+    }
+  }, [props]);
 
-  function createChildren() {
-    var children = react__WEBPACK_IMPORTED_MODULE_0__.Children.map(props.children, child => {
-      // Checking isValidElement is the safe way and avoids a typescript
-      // error too.
-      if ( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.isValidElement(child)) {
-        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.cloneElement(child, {
-          hidden: isFocused,
-          setFocus: setFocus
-        });
+  function closeOut() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder overlayc"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_projecthorizonex_gif__WEBPACK_IMPORTED_MODULE_10__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(130%, 30%) rotate(12deg)",
+        width: "700px"
       }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space12_png__WEBPACK_IMPORTED_MODULE_15__.default,
+      className: "pageimg space12c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__.default,
+      className: "pageimg space2c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__.default,
+      className: "pageimg space1c"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__.default,
+      className: "pageimg space3c"
+    }));
+  }
 
-      return child;
-    });
-    return children;
+  function openIn() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      className: "overlayHolder space1"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      onMouseEnter: mouseIn,
+      onMouseLeave: check,
+      src: _img_projecthorizonex_gif__WEBPACK_IMPORTED_MODULE_10__.default,
+      className: "pageimg overlay",
+      style: {
+        transform: "translate(130%, 30%) rotate(12deg)",
+        width: "700px"
+      }
+    })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space12_png__WEBPACK_IMPORTED_MODULE_15__.default,
+      className: "pageimg space12"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space2_png__WEBPACK_IMPORTED_MODULE_16__.default,
+      className: "pageimg space2"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space3_png__WEBPACK_IMPORTED_MODULE_17__.default,
+      className: "pageimg space1"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+      src: _img_new_space4_png__WEBPACK_IMPORTED_MODULE_18__.default,
+      className: "pageimg space3"
+    }));
+  }
+
+  var timeout = '';
+
+  function mouseIn() {
+    textRef.current.className = "textIn text";
+    clearTimeout(timeout);
+  }
+
+  function check() {
+    timeout = setTimeout(() => {
+      textRef.current.className = "textOut text";
+      mouseOut();
+    }, 3000);
+  }
+
+  function up() {
+    clearTimeout(timeout);
+  }
+
+  function mouseOut() {
+    if (textRef.current.className == "textIn text") {
+      textRef.current.className = "textOut text";
+    }
+
+    setTimeout(() => {
+      textRef.current.className = "hidden";
+    }, 4000);
   }
 
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "myRow display",
-    id: props.id
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "aspectRatio"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "myCardRow"
-  }, createChildren())));
-}
-
-(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.render)( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-  id: "overfun",
-  style: {
-    display: "none"
-  }
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
-  className: "overfun2"
-}), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
-  className: "overfun1"
-})), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-  id: "overfun2",
-  style: {
-    display: "none"
-  }
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
-  className: "overfunup2"
-}), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
-  src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
-  className: "overfunup1"
-})), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
-  id: "home"
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "Good Evening \u3053\u3093\u3070\u3093\u306F\uFF01 "))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
-  id: "webrtc"
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
-  sm: true,
-  l: true
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, "webrtc + three.js"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "(wip) An online chatroom where users can interact with each other in a 3D environment ")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
-  expandable: true,
-  coverImg: _img_projecthorizonex_gif__WEBPACK_IMPORTED_MODULE_10__.default
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("iframe", {
-  id: "webrtcFrame",
-  src: "https://bluestarburst.github.io/project-horizon/"
-})), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
-  sm: true
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, "smol!"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
-  id: "next"
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "Hello!"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Row, {
-  id: "schedule"
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
-  sm: true,
-  l: true
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, "yay!")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
-  expandable: true,
-  coverImg: _img_tutorialscheduleex_gif__WEBPACK_IMPORTED_MODULE_11__.default
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("iframe", {
-  id: "webrtcFrame",
-  src: "https://bluestarburst.github.io/CSPSchedule/"
-})), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Card, {
-  sm: true
-}, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, "Tutorial Schedule!"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "A virtual calendar that allows students to plan study sessions.")))), document.getElementById("root")); //positions
-
-var spots = [];
-var tempRows = document.getElementsByClassName("myRow");
-var index = 0;
-var minDistance = 99999;
-
-for (var i = 0; i < tempRows.length; i++) {
-  if (Math.abs(document.documentElement.scrollTop - tempRows[i].offsetTop) < minDistance) {
-    index = i;
-    minDistance = Math.abs(document.documentElement.scrollTop - tempRows[i].offsetTop);
-  }
-
-  spots.push(tempRows[i]);
-}
-
-var hash = ['home', 'webrtc'];
-var pos = index;
-
-function preventDefault(e) {
-  e.preventDefault();
-} // modern Chrome requires { passive: false } when adding event
-
-
-var supportsPassive = false;
-
-try {
-  window.addEventListener("test", null, Object.defineProperty({}, 'passive', {
-    get: function () {
-      supportsPassive = true;
+    ref: page,
+    style: {
+      display: "none"
     }
-  }));
-} catch (e) {}
-
-var wheelOpt = supportsPassive ? {
-  passive: false
-} : false;
-var wheelEvent = 'onwheel' in document.createElement('div') ? 'wheel' : 'mousewheel'; // call this to Disable
-
-function disableScroll() {
-  window.addEventListener('DOMMouseScroll', preventDefault, false); // older FF
-
-  window.addEventListener(wheelEvent, preventDefault, wheelOpt); // modern desktop
-
-  window.addEventListener('touchmove', preventDefault, wheelOpt); // mobile
-
-  window.addEventListener('keydown', preventDefaultForScrollKeys, false);
-} // call this to Enable
-
-
-function enableScroll() {
-  window.removeEventListener('DOMMouseScroll', preventDefault, false);
-  window.removeEventListener(wheelEvent, preventDefault, wheelOpt);
-  window.removeEventListener('touchmove', preventDefault, wheelOpt);
-  window.removeEventListener('keydown', preventDefaultForScrollKeys, false);
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: overlay,
+    className: "openAnim"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
+    className: "pageimg cloudsRIn"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
+    className: "pageimg cloudsLIn"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: container,
+    style: props.style,
+    className: "page"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    className: "hidden text",
+    ref: textRef,
+    onMouseEnter: up,
+    onMouseLeave: check
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "This is my prototype for an online chatroom called WebRTC World! In this project, I used react-three-fiber in order to make a 3d environment for browsers. Position and rotation data are sent directly from peer to peer using WebRTC.")), props.open ? openIn() : closeOut()));
 }
 
-var isMobile = false;
-var toggle = true;
-var mouseY = 0;
+function Title(props) {
+  const container = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const overlay = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const page = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [show, setShow] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("none");
+  const delay = props.delay || 0;
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    console.log(props.open);
 
-function check() {
-  mobile();
+    if (props.open) {
+      page.current.style.display = "block";
+      overlay.current.style.display = "block";
+      container.current.style.display = "flex";
+    } else if (props.open == false) {
+      overlay.current.style.display = "none";
+      setTimeout(() => {
+        container.current.style.display = "none";
+        page.current.style.display = "none";
+      }, 5000);
+    }
+  }, [props]);
 
-  if (isMobile) {
-    return;
+  function closeOut() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "\u3053\u3093\u3070\u3093\u306F"));
   }
 
-  if (mouseY < 80 || window.scrollY == 0 || pos == 0 || up && isMobile) {
-    toggle = true;
-  } else {
-    toggle = false;
-  }
-}
-
-document.onmousemove = e => {
-  mouseY = e.clientY;
-  check();
-};
-
-var lastScrollTop = 0;
-var up = false;
-var timeout = '';
-var lastpos = pos;
-
-function scrollToPos() {
-  //window.location.hash = hash[pos];
-  if (lastpos != pos) {
-    document.getElementById("overfun").style.display = "none";
-    document.getElementById("overfun2").style.display = "none";
+  function openIn() {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h1", null, "\u3053\u3093\u3070\u3093\u306F"));
   }
 
-  if (pos == 0) {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  } else {
-    var height = (innerHeight - spots[pos].style.height) / 2;
-    window.scrollTo({
-      top: spots[pos].offsetTop,
-      behavior: 'smooth'
-    });
-  }
-
-  if (lastpos > pos) {
-    document.getElementById("overfun2").style.display = "flex";
-  } else if (lastpos < pos) {
-    document.getElementById("overfun").style.display = "flex";
-  }
-
-  lastpos = pos;
-  clearTimeout(timeout);
-  timeout = setTimeout(function () {
-    check();
-  }, 100);
-}
-
-var scrolling = false;
-var isStatic = true;
-var staticVal = 0;
-window.scroll({
-  left: 0
-});
-
-function tempScroll(event) {
-  event.preventDefault();
-
-  if (event.deltaY < 0) {
-    up = true;
-  } else {
-    up = false;
-  }
-
-  adjustPos();
-  scrollToPos();
-  staticVal = 0;
-  isStatic = true;
-}
-
-document.addEventListener('wheel', tempScroll, {
-  passive: false
-});
-
-function swipe(e) {
-  e.preventDefault();
-}
-
-window.addEventListener('touchmove', swipe, {
-  passive: false
-});
-var clientX, clientY;
-window.addEventListener('touchstart', function (e) {
-  // Cache the client X/Y coordinates
-  clientX = e.touches[0].clientX;
-  clientY = e.touches[0].clientY;
-}, false);
-window.addEventListener('touchend', function (e) {
-  var deltaX, deltaY;
-  deltaX = e.changedTouches[0].clientX - clientX;
-  deltaY = e.changedTouches[0].clientY - clientY;
-  var dist = 60;
-
-  if (deltaY > 60) {
-    up = true;
-  } else if (deltaY < -60) {
-    up = false;
-  } else if (!e.target.classList.contains("headerTap")) {
-    if (!toggle) {
-      toggle = true;
-      document.getElementById("flag").classList.add("flagSlide");
-      document.getElementById("header").classList.remove("slideUp");
-      document.getElementById("header").style.display = "inline-flex";
-      document.getElementById("header").classList.add("slideDown");
-
-      if (isMobile) {
-        document.getElementById("flag").style.marginTop = "10vh";
-      } else {
-        document.getElementById("flag").style.marginTop = "75px";
+  function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
       }
-    } else {
-      toggle = false;
-      document.getElementById("flag").style.marginTop = "0";
-      document.getElementById("flag").classList.remove("flagSlide");
-      document.getElementById("header").classList.remove("slideDown");
-      document.getElementById("flag").style.marginTop = "0";
-      document.getElementById("header").classList.add("slideUp");
-    }
-
-    return;
-  } else {
-    return;
-  }
-
-  adjustPos();
-  scrollToPos();
-}, false);
-
-function adjustPos() {
-  scrolling = true;
-
-  if (up) {
-    pos--;
-
-    if (pos < 0) {
-      pos = 0;
-    }
-  } else {
-    pos++;
-
-    if (pos >= spots.length) {
-      pos = spots.length - 1;
     }
   }
 
-  check();
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    className: "page0",
+    ref: page,
+    style: {
+      display: "none"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    className: "topbar",
+    onClick: toggleFullScreen
+  }, " Click here to toggle fullscreen! "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: overlay,
+    className: "openAnim"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds_png__WEBPACK_IMPORTED_MODULE_12__.default,
+    className: "pageimg cloudsRIn"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("img", {
+    src: _img_clouds2_png__WEBPACK_IMPORTED_MODULE_13__.default,
+    className: "pageimg cloudsLIn"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: container,
+    style: props.style,
+    className: "page"
+  }, props.open ? openIn() : closeOut()));
 }
 
-function mobile() {
-  return;
+(0,react_dom__WEBPACK_IMPORTED_MODULE_1__.render)( /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Web, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Title, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Space, null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(City, null))), document.getElementById("root")); // Hook
 
-  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-    isMobile = true; //console.log(navigator.userAgent);
+function useKeyPress(targetKey) {
+  // State for keeping track of whether key is pressed
+  const [keyPressed, setKeyPressed] = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false); // If pressed key is our target key then set to true
 
-    document.getElementById("header").style.height = "10vh";
-    document.getElementById("header").style.fontSize = 'larger';
-    document.getElementById("content").style.fontSize = '360%';
-
-    if (toggle) {
-      document.getElementById("flag").style.marginTop = "10vh";
-    } else {
-      document.getElementById("flag").style.marginTop = "0";
+  function downHandler({
+    key
+  }) {
+    if (key === targetKey) {
+      setKeyPressed(true);
     }
+  } // If released key is our target key then set to false
 
-    document.getElementById("content").style.width = 'min-content';
-    document.getElementById("flag").style.width = "105vw";
-    document.getElementById("flag").style.fontSize = "175%";
-    var titles = document.getElementsByClassName("h1");
 
-    for (var i = 0; i < titles.length; i++) {
-      titles[i].style.fontSize = "10vw";
+  const upHandler = ({
+    key
+  }) => {
+    if (key === targetKey) {
+      setKeyPressed(false);
     }
+  }; // Add event listeners
 
-    titles = document.getElementsByClassName("p");
 
-    for (var i = 0; i < titles.length; i++) {
-      titles[i].style.fontSize = "5vw";
-    }
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    window.addEventListener("keydown", downHandler);
+    window.addEventListener("keyup", upHandler); // Remove event listeners on cleanup
 
-    titles = document.getElementsByClassName("link");
+    return () => {
+      window.removeEventListener("keydown", downHandler);
+      window.removeEventListener("keyup", upHandler);
+    };
+  }, []); // Empty array ensures that effect is only run on mount and unmount
 
-    for (var i = 0; i < titles.length; i++) {
-      titles[i].style.width = "35vw";
-    }
-
-    document.getElementById("sponsors").style.width = "105vw";
-    document.getElementById("cover1").style.width = "105vw";
-    document.getElementById("cover1").style.padding = "10vw 0";
-    document.getElementById("desc1").style.maxWidth = "80vw";
-    return;
-  } else if (window.innerHeight > window.innerWidth) {
-    isMobile = false;
-    document.getElementById("content").style.fontSize = '30px';
-    document.getElementById("header").style.fontSize = '60%';
-    document.getElementById("content").style.width = 'min-content';
-  } else {
-    isMobile = false;
-    document.getElementById("content").style.fontSize = '40px';
-    document.getElementById("content").style.width = 'max-content';
-    document.getElementById("header").style.fontSize = '60%';
-  }
-
-  document.getElementById("sponsors").style.width = "100vw";
-  document.getElementById("flag").style.fontSize = "unset";
-  var titles = document.getElementsByClassName("h1");
-
-  for (var i = 0; i < titles.length; i++) {
-    titles[i].style.fontSize = "45px";
-  }
-
-  titles = document.getElementsByClassName("p");
-
-  for (var i = 0; i < titles.length; i++) {
-    titles[i].style.fontSize = "28px";
-  }
-
-  titles = document.getElementsByClassName("link");
-
-  for (var i = 0; i < titles.length; i++) {
-    titles[i].style.width = "15vw";
-  }
-
-  document.getElementById("cover1").style.width = "100vw";
-  document.getElementById("cover1").style.padding = "75px 0";
-  document.getElementById("desc1").style.maxWidth = "750px";
+  return keyPressed;
 }
-
-mobile(); // left: 37, up: 38, right: 39, down: 40,
-// spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
-
-var keys = {
-  38: 1,
-  40: 2,
-  32: 2,
-  33: 1,
-  34: 2,
-  35: 3,
-  36: 3
-};
-
-function preventDefaultForScrollKeys(e) {
-  if (keys[e.keyCode]) {
-    preventDefault(e);
-
-    if (keys[e.keyCode] == 1) {
-      up = true;
-    } else if (keys[e.keyCode] == 2) {
-      up = false;
-    } else if (e.keyCode == 35) {
-      up = false;
-      pos = spots.length - 1;
-    } else if (e.keyCode == 36) {
-      up = true;
-      pos = 0;
-    }
-
-    adjustPos();
-    scrollToPos();
-    return false;
-  }
-}
-
-var samePage = {
-  1: 1,
-  2: 1,
-  4: 1
-};
-
-function scrollToSetPos(tempPos) {
-  if (samePage[tempPos]) {
-    pos = tempPos;
-    scrollToPos();
-  }
-}
-
-disableScroll();
 })();
 
 /******/ })()
