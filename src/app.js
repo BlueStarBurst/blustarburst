@@ -18,6 +18,12 @@ import firebase from 'firebase/app';
 // import { OrbitControls } from '@react-three/drei';
 // import { OBJLoader } from 'three-stdlib';
 
+import bryant from './img/new/amy2.png'
+import github from './img/new/github.png'
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { solid, regular, brands, icon } from '@fortawesome/fontawesome-svg-core/import.macro'
+
 // import * as THREE from 'three'
 
 import { TextField } from '@mui/material';
@@ -138,75 +144,309 @@ function Train() {
     )
 }
 
+function Letter(props) {
+    // this function makes the letter draggable
+
+
+    const [isDragging, setIsDragging] = useState(false);
+    const [timeout, setTimeouts] = useState(false);
+    const ref = useRef(null);
+
+    function dragStuff(e) {
+        clearTimeout(timeout);
+        setTimeouts(setTimeout(() => {
+            setIsDragging(false);
+            ref.current.style.transform = `translate(0px, 0px)`;
+        }, 1000));
+        setIsDragging(true);
+        var x = 0, y = 0;
+        var card = e.target;
+        props.onMouseMove(e, false);
+        x += e.movementX;
+        y += e.movementY;
+        card.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    function onLeave(e) {
+        e.target.style.setProperty("--is-off", `1`);
+    }
+
+    function onEnter(e) {
+        e.target.style.setProperty("--is-off", `0`);
+    }
+
+    useEffect(() => {
+        if (isDragging) {
+
+        }
+    }, [isDragging]);
+
+    return (
+        <div onMouseMove={dragStuff} onMouseEnter={onEnter} onMouseLeave={onLeave} ref={ref} className='text'>
+            {props.letter}
+        </div>
+    )
+}
+
+var scrolling = false;
+var timeScroll = 0;
+var timeId = 0;
+var addScroll = 0;
+
+var scrollPos = 0;
+var tempTop = 0;
+
 function App() {
 
-    const [currentThing, setCurrentThing] = useState("")
+    const [letters, setLetters] = useState("Bryant Hargreaves");
+    const [mousedown, setMousedown] = useState(false);
 
-    function onTextChange(e) {
-        console.log(e.target.value)
-        setCurrentThing(getHangul(e.target.value))
-    }
-
-    function copyElementText(e) {
-        if (currentThing == "") {
-            return
+    function hoverEffect(e, isRoot = false) {
+        var card = e.target;
+        if (!isRoot) {
+            // card = e.target.parentElement;
+            card = ref.current;
         }
+        // const rectTarget = e.target.getBoundingClientRect(),
+        //     xT = e.clientX - rectTarget.left,
+        //     yT = e.clientY - rectTarget.top;
 
-        // get root element for variable scope
-        var r = document.querySelector(':root');
-
-        r.style.setProperty('--card-color', "#1a36a6");
-        r.style.setProperty('--offset', "0px");
-        setTimeout(() => {
-            r.style.setProperty('--card-color', "#1d1d1d");
-        }, 250);
-
-        setTimeout(() => {
-            r.style.setProperty('--offset', "100px");
-        }, 2000);
-
-        navigator.clipboard.writeText(currentThing).then(function () {
-            console.log('Async: Copying to clipboard was successful!');
-        }, function (err) {
-            console.error('Async: Could not copy text: ', err);
-        });
-    }
-
-    function hoverEffect(e) {
-        const card = e.target;
         const rect = card.getBoundingClientRect(),
             x = e.clientX - rect.left,
             y = e.clientY - rect.top;
 
         card.style.setProperty("--mouseX", `${x}px`);
         card.style.setProperty("--mouseY", `${y}px`);
+
+
     }
 
-    return (<div className='page'>
+    const ref = useRef();
+    const wack = useRef();
+    const pt = useRef();
+    const circle = useRef();
+    const whiteText = useRef();
+
+    useEffect(() => {
+        document.getElementById("root").addEventListener('mousemove', function (e) {
+            circle.current.style.top = (e.pageY - 25 + scrollPos) + 'px';
+            circle.current.style.left = (e.pageX - 25) + 'px';
+            pt.current.style.top = (e.pageY - 4 + scrollPos) + 'px';
+            pt.current.style.left = (e.pageX - 4) + 'px';
+            tempTop = e.pageY;
+        });
+        document.addEventListener('mousedown', function () {
+            circle.current.classList.add('active');
+            setMousedown(true);
+        });
+        document.addEventListener('mouseup', function () {
+            circle.current.classList.remove('active');
+            setMousedown(false);
+        });
+
+        document.getElementById("root").addEventListener('wheel', function (e) {
+            e.preventDefault
+            e.stopPropagation();
+            var elem = document.getElementById("root")
+            console.log(e.deltaY)
+            addScroll += e.deltaY;
+
+            clearTimeout(timeScroll);
+            timeScroll = setTimeout(() => {
+                scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 500);
+                addScroll = 0;
+                timeId = timeId++;
+            }, 200);
+
+        });
+
+        document.getElementById("root").addEventListener('touchmove', function (e) {
+            e.preventDefault
+            e.stopPropagation();
+            var elem = document.getElementById("root")
+            console.log(e.deltaY)
+            addScroll += e.deltaY;
+
+            clearTimeout(timeScroll);
+            timeScroll = setTimeout(() => {
+                scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 500);
+                addScroll = 0;
+                timeId = timeId++;
+            }, 200);
+
+        });
+    }, [])
+
+    function shrinkSize() {
+        // ref.current.className = 'hoverEffect background backSize';
+        circle.className = 'circle circleSz';
+    }
+
+    function growSize() {
+        // ref.current.className = 'hoverEffect background';
+        circle.className = 'circle';
+    }
+
+    // Element to move, element or px from, element or px to, time in ms to animate
+    function scrollToC(element, from, to, duration) {
+        console.log(element, from, to, duration);
+        if (duration <= 0) return;
+        if (typeof from === "object") from = from.offsetTop;
+        if (typeof to === "object") to = to.offsetTop;
+
+        currentId = timeScroll;
+        scrollToX(element, from, to, 0, 1 / duration, 10, easeOutCuaic);
+    }
+
+    function scrollToX(element, xFrom, xTo, t01, speed, step, motion) {
+        if (currentId !== timeScroll) {
+            scrolling = false;
+            return;
+        }
+        if (t01 < 0 || t01 > 1 || speed <= 0) {
+            element.scrollTop = xTo;
+            scrolling = false;
+            return;
+        }
+        element.scrollTop = xFrom - (xFrom - xTo) * motion(t01);
+        t01 += speed * step;
+
+        wack.current.style.transform = 'translateY(' + Math.max(-element.scrollTop * 2, -window.innerHeight * 3 / 4) + 'px)';
+        whiteText.current.style.opacity = (element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 8);
+
+        scrollPos = element.scrollTop;
+
+        circle.current.style.top = (tempTop - 25 + scrollPos) + 'px';
+        pt.current.style.top = (tempTop - 4 + scrollPos) + 'px';
+
+        // debugger;
+        setTimeout(function () {
+            scrollToX(element, xFrom, xTo, t01, speed, step, motion);
+        }, step);
+    }
+
+    return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
-            <TextField id="outlined-basic" label="Phonetic Korean" variant="standard" onChange={onTextChange} />
+            <div className='page'>
 
-            <div className='relative'>
-                <div onClick={copyElementText} onMouseMove={hoverEffect} className='output'>
-                    <hi className="faketext" onClick={copyElementText}>{currentThing}</hi>
-                    <h1 className='output-content' onClick={copyElementText}>{currentThing}</h1>
+
+                <div ref={ref} onMouseDown={shrinkSize} onMouseUp={growSize} onMouseMove={(e) => { hoverEffect(e, true) }} className='hoverEffect background'>
+
+                    {/* <div onMouseMove={(e) => { hoverEffect(e, true) }} className='text'>
+                    Bryant Hargreaves
+                </div> */}
+
+                    <div className='rows'>
+                        {letters.split("").map((letter, index) => {
+                            return <Letter onMouseMove={(e) => { hoverEffect(e, false) }} letter={letter} />
+                        })}
+                    </div>
+
+                    <p className='text2' onMouseMove={(e) => { hoverEffect(e, false) }}>
+                        Software Engineer
+                    </p>
+
+                </div>
+
+                <div className='circle' ref={circle}>
+                </div>
+                <div className='pt' ref={pt}>
+                </div>
+
+
+
+            </div>
+            <div className='page white' ref={wack}>
+
+                <div className='rows2' ref={whiteText}>
+                    <img src={bryant} />
+                    <div className='textcol'>
+                        <h1>About</h1>
+                        <p>
+                            Hello, internet! My name is Bryant Hargreaves and I am a Software Engineering student
+                            at the University of Texas at Dallas! I am currently looking for an internship
+                            for Summer 2023. I am interested in pretty much anything that has to do with software
+                            development, but I am especially interested in web development, mobile development,
+                            computer vision, and machine learning.
+                        </p>
+                        <div className='btns'>
+                            <a href='https://github.com/BlueStarBurst' target='_blank'>
+                                <FontAwesomeIcon icon={brands('github-square')} />
+                            </a>
+                            <a href='https://www.linkedin.com/in/bryant-hargreaves/' target='_blank'>
+                                <FontAwesomeIcon icon={brands('linkedin')} />
+                            </a>
+
+                            <a href='https://www.instagram.com/bryant_hargreaves/' target='_blank'>
+                                <FontAwesomeIcon icon={brands('instagram-square')} />
+                            </a>
+
+                            <a href='https://apps.apple.com/us/developer/bryant-hargreaves/id1640595525?uo=4&at=11l6hc&app=itunes&ct=fnd' target='_blank'>
+                                <FontAwesomeIcon icon={brands('app-store')} />
+                            </a>
+
+
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
 
-            <p className='info'>
-                This is a tool to convert English Phonetic to Korean Characters. Ex: "ko" -{'>'} "코" <br/> (it's is for people who are too lazy to find a korean keyboard)
-
-            </p>
-
-            <div className='copied'>
-                <h5>"{currentThing}" has been copied to your clipboard</h5>
+            <div className='page third'>
+                <h1>Projects</h1>
+                
             </div>
-
-
         </ThemeProvider>
-    </div>
     )
 }
 
 render(<App />, document.getElementById('root'))
+
+var currentId = 0;
+
+// Element to move, time in ms to animate
+function scrollTo(element, duration) {
+    var e = document.documentElement;
+    if (e.scrollTop === 0) {
+        var t = e.scrollTop;
+        ++e.scrollTop;
+        e = t + 1 === e.scrollTop-- ? e : document.body;
+    }
+    scrollToC(e, e.scrollTop, element, duration);
+}
+
+// Element to move, element or px from, element or px to, time in ms to animate
+function scrollToC(element, from, to, duration) {
+    console.log(element, from, to, duration);
+    if (duration <= 0) return;
+    if (typeof from === "object") from = from.offsetTop;
+    if (typeof to === "object") to = to.offsetTop;
+
+    currentId = timeScroll;
+    scrollToX(element, from, to, 0, 1 / duration, 10, easeOutCuaic);
+}
+
+function scrollToX(element, xFrom, xTo, t01, speed, step, motion) {
+    if (currentId !== timeScroll) {
+        scrolling = false;
+        return;
+    }
+    if (t01 < 0 || t01 > 1 || speed <= 0) {
+        element.scrollTop = xTo;
+        scrolling = false;
+        return;
+    }
+    element.scrollTop = xFrom - (xFrom - xTo) * motion(t01);
+    t01 += speed * step;
+    // debugger;
+    setTimeout(function () {
+        scrollToX(element, xFrom, xTo, t01, speed, step, motion);
+    }, step);
+}
+
+function easeOutCuaic(t) {
+    t--;
+    return t * t * t + 1;
+}
