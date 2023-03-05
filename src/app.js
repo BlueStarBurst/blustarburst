@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback, useLayoutEffect, Suspense } from 'react'
 import { render } from 'react-dom'
 
-import "./style.css"
+import "./style.scss"
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import firebase from 'firebase/app';
@@ -340,6 +340,51 @@ function App() {
         card.style.setProperty("--mouseY", `${y}px`);
     }
 
+    // var makeItRain = function () {
+    //     //clear out everything
+    //     $('.rain').empty();
+
+    //     var increment = 0;
+    //     var drops = "";
+    //     var backDrops = "";
+
+    //     while (increment < 100) {
+    //         //couple random numbers to use for various randomizations
+    //         //random number between 98 and 1
+    //         var randoHundo = (Math.floor(Math.random() * (98 - 1 + 1) + 1));
+    //         //random number between 5 and 2
+    //         var randoFiver = (Math.floor(Math.random() * (5 - 2 + 1) + 2));
+    //         //increment
+    //         increment += randoFiver;
+    //         //add in a new raindrop with various randomizations to certain CSS properties
+    //         drops += '<div class="drop" style="left: ' + increment + '%; bottom: ' + (randoFiver + randoFiver - 1 + 100) + '%; animation-delay: 0.' + randoHundo + 's; animation-duration: 0.5' + randoHundo + 's;"><div class="stem" style="animation-delay: 0.' + randoHundo + 's; animation-duration: 0.5' + randoHundo + 's;"></div><div class="splat" style="animation-delay: 0.' + randoHundo + 's; animation-duration: 0.5' + randoHundo + 's;"></div></div>';
+    //         backDrops += '<div class="drop" style="right: ' + increment + '%; bottom: ' + (randoFiver + randoFiver - 1 + 100) + '%; animation-delay: 0.' + randoHundo + 's; animation-duration: 0.5' + randoHundo + 's;"><div class="stem" style="animation-delay: 0.' + randoHundo + 's; animation-duration: 0.5' + randoHundo + 's;"></div><div class="splat" style="animation-delay: 0.' + randoHundo + 's; animation-duration: 0.5' + randoHundo + 's;"></div></div>';
+    //     }
+
+    //     $('.rain.front-row').append(drops);
+    //     $('.rain.back-row').append(backDrops);
+    // }
+
+    // $('.splat-toggle.toggle').on('click', function () {
+    //     $('body').toggleClass('splat-toggle');
+    //     $('.splat-toggle.toggle').toggleClass('active');
+    //     makeItRain();
+    // });
+
+    // $('.back-row-toggle.toggle').on('click', function () {
+    //     $('body').toggleClass('back-row-toggle');
+    //     $('.back-row-toggle.toggle').toggleClass('active');
+    //     makeItRain();
+    // });
+
+    // $('.single-toggle.toggle').on('click', function () {
+    //     $('body').toggleClass('single-toggle');
+    //     $('.single-toggle.toggle').toggleClass('active');
+    //     makeItRain();
+    // });
+
+    // makeItRain();
+
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
@@ -505,13 +550,23 @@ function App() {
                 </p>
             </div>
 
-            <div className='page behind' >
-
+            <div className='page behind strip' >
+                {/* <div class="back-row-toggle splat-toggle">
+                    <div class="rain front-row"></div>
+                    <div class="rain back-row"></div>
+                    <div class="toggles">
+                        <div class="splat-toggle toggle active">SPLAT</div>
+                        <div class="back-row-toggle toggle active">BACK<br />ROW</div>
+                        <div class="single-toggle toggle">SINGLE</div>
+                    </div>
+                </div> */}
             </div>
             <div className='page behind' >
             </div>
         </ThemeProvider>
     )
+
+
 }
 
 render(<App />, document.getElementById('root'))

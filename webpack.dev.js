@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+var webpack = require('webpack');
 
 function createCopy(pathW = '') {
     return ({
@@ -38,6 +39,11 @@ function createCopy(pathW = '') {
                 patterns: [
                     { from: 'assets' }
                 ]
+            }),
+            new webpack.ProvidePlugin({
+                $: "jquery",
+                jQuery: "jquery",
+                "window.jQuery": "jquery"
             })
         ],
         experiments: {
