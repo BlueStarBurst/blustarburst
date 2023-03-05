@@ -226,6 +226,7 @@ function App() {
     const pt = useRef();
     const circle = useRef();
     const whiteText = useRef();
+    const slow = useRef();
 
     useEffect(() => {
         document.getElementById("root").addEventListener('mousemove', function (e) {
@@ -312,7 +313,11 @@ function App() {
         t01 += speed * step;
 
         wack.current.style.transform = 'translateY(' + Math.max(-element.scrollTop * 2, -window.innerHeight * 3 / 4) + 'px)';
-        whiteText.current.style.opacity = (element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 8);
+        whiteText.current.style.opacity = (element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
+
+        console.log(element.scrollTop - window.innerHeight / 4)
+        slow.current.style.transform = 'translateY(' + (-1 * Math.abs((element.scrollTop * 0.75 - window.innerHeight * 1) / 4) + 75) + 'px)';
+        slow.current.style.opacity = (element.scrollTop - window.innerHeight * 4 / 5) / (window.innerHeight / 4);
 
         scrollPos = element.scrollTop;
 
@@ -323,6 +328,16 @@ function App() {
         setTimeout(function () {
             scrollToX(element, xFrom, xTo, t01, speed, step, motion);
         }, step);
+    }
+
+    function hoverEffect2(e) {
+        const card = e.target;
+        const rect = card.getBoundingClientRect(),
+            x = e.clientX - rect.left,
+            y = e.clientY - rect.top;
+
+        card.style.setProperty("--mouseX", `${x}px`);
+        card.style.setProperty("--mouseY", `${y}px`);
     }
 
     return (
@@ -368,7 +383,7 @@ function App() {
                             at the University of Texas at Dallas! I am currently looking for an internship
                             for Summer 2023. I am interested in pretty much anything that has to do with software
                             development, but I am especially interested in web development, mobile development,
-                            computer vision, and machine learning.
+                            computer vision, and machine learning. Here's my <a href='https://docs.google.com/document/d/1gNtBx9HQ1rqoOxBJM1lZkK_z0mCp0dszh4dDvM4uYwQ/edit?usp=sharing' target='_blank'>resume</a>!
                         </p>
                         <div className='btns'>
                             <a href='https://github.com/BlueStarBurst' target='_blank'>
@@ -394,9 +409,106 @@ function App() {
                 </div>
             </div>
 
-            <div className='page third'>
-                <h1>Projects</h1>
-                
+            <div className='page third' ref={slow}>
+                <h1><b>Projects</b></h1>
+                <div className='rows3'>
+                    <div className='relative'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://bluestarburst.github.io/ARWorld/' target='_blank'>
+                            <div onMouseMove={hoverEffect2} className='output-content' >
+                                <FontAwesomeIcon icon={solid('globe-americas')} />
+                                <h3><b>ourworlds!</b></h3>
+                                <p>
+                                    A comprehensive AR IOS app that involves SwiftUI, Firebase Auth,
+                                    Firestore, Unity AR Foundation, ARKit, React.js, and Three.js. It is
+                                    free to download on the App Store.
+                                </p>
+
+                            </div>
+
+                        </a>
+                    </div>
+                    <div className='relative'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://github.com/BlueStarBurst/storyboard' target='_blank'>
+                            <div onMouseMove={hoverEffect2} className='output-content' >
+                                <FontAwesomeIcon icon={solid('location-dot')} />
+                                <h3><b>storyboard!</b></h3>
+                                <p>
+                                    A proof of concept for IOS app development with SwiftUI, MapKit,
+                                    and Firebase firestore, auth, and storage. I experimented with cloud
+                                    computing and overall project management.
+                                </p>
+
+                            </div>
+                        </a>
+                    </div>
+                    <div className='relative'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://github.com/BlueStarBurst/project-horizon' target='_blank'>
+                            <div onMouseMove={hoverEffect2} className='output-content' >
+                                <FontAwesomeIcon icon={solid('cube')} />
+                                <h3><b>webrtc+three.js</b></h3>
+                                <p>
+                                    A proof of concept exploring the uses of
+                                    webRTC's data streaming in applications other than video and audio sharing.
+                                </p>
+
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div className='rows3'>
+                    <div className='relative'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://bluestarburst.github.io/CSPSchedule/' target='_blank'>
+                            <div onMouseMove={hoverEffect2} className='output-content' >
+                                <FontAwesomeIcon icon={solid('phone')} />
+                                <h3><b>webrtc meeting</b></h3>
+                                <p>
+                                    A scheduler that allows students to plan and create online study sessions.
+                                    This was created over the COVID-19 lockdown and submitted as my AP Computer
+                                    Science Principles project.
+                                </p>
+
+                            </div>
+
+                        </a>
+                    </div>
+                    <div className='relative'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://bluestarburst.github.io/korean/' target='_blank'>
+                            <div onMouseMove={hoverEffect2} className='output-content' >
+                                <FontAwesomeIcon icon={solid('language')} />
+                                <h3><b>hangul</b></h3>
+                                <p>
+                                    A simple website that turns English phonetics into Hangul (Korean). This helps create flashcards,
+                                    search for words, and learn the Korean alphabet.
+                                </p>
+
+                            </div>
+                        </a>
+                    </div>
+                    <div className='relative'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://github.com/BlueStarBurst/storyboard' target='_blank'>
+                            <div onMouseMove={hoverEffect2} className='output-content' >
+                                <FontAwesomeIcon icon={solid('graduation-cap')} />
+                                <h3><b>dragons4dragons</b></h3>
+                                <p>
+                                    Created the website for a non-profit organization that granted scholarships
+                                    to deserving students. THe organization was founded by my friend and I
+                                    managed the technical aspects of it.
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+
+                </div>
+                <p className='misc'>
+                    and more on <a href='https://github.com/BlueStarBurst' target='_blank'>github</a>!
+                </p>
+            </div>
+
+            <div className='page behind' >
+
+            </div>
+            <div className='page behind' >
             </div>
         </ThemeProvider>
     )
