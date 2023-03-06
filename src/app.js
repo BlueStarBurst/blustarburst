@@ -315,8 +315,9 @@ function App() {
         wack.current.style.transform = 'translateY(' + Math.max(-element.scrollTop * 2, -window.innerHeight * 3 / 4) + 'px)';
         whiteText.current.style.opacity = (element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
 
-        console.log(element.scrollTop - window.innerHeight / 4)
-        slow.current.style.transform = 'translateY(' + (-1 * Math.abs((element.scrollTop * 0.75 - window.innerHeight * 1) / 4) + 75) + 'px)';
+        console.log(slow.current.clientHeight);
+        var offsetHeight = window.innerHeight * 1.15;
+        slow.current.style.transform = 'translateY(' + (-50 * Math.abs((element.scrollTop - offsetHeight)) / offsetHeight + 10) + '%)';
         slow.current.style.opacity = (element.scrollTop - window.innerHeight * 4 / 5) / (window.innerHeight / 4);
 
         scrollPos = element.scrollTop;
@@ -531,7 +532,7 @@ function App() {
                         </a>
                     </div>
                     <div className='relative'>
-                        <a onMouseMove={hoverEffect2} className='output' href='https://github.com/BlueStarBurst/storyboard' target='_blank'>
+                        <a onMouseMove={hoverEffect2} className='output' href='https://dragons4dragons.github.io/' target='_blank'>
                             <div onMouseMove={hoverEffect2} className='output-content' >
                                 <FontAwesomeIcon icon={solid('graduation-cap')} />
                                 <h3><b>dragons4dragons</b></h3>
