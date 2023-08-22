@@ -195,6 +195,7 @@ var addScroll = 0;
 
 var scrollPos = 0;
 var tempTop = 0;
+var tempTouch = 0;
 
 function App() {
 
@@ -217,7 +218,6 @@ function App() {
 
         card.style.setProperty("--mouseX", `${x}px`);
         card.style.setProperty("--mouseY", `${y}px`);
-
 
     }
 
@@ -261,21 +261,27 @@ function App() {
 
         });
 
-        document.getElementById("root").addEventListener('touchmove', function (e) {
-            e.preventDefault
-            e.stopPropagation();
-            var elem = document.getElementById("root")
-            console.log(e.deltaY)
-            addScroll += e.deltaY;
+        // document.getElementById("root").addEventListener('touchmove', function (e) {
+        //     e.preventDefault
+        //     e.stopPropagation();
+        //     var elem = document.getElementById("root")
+        //     console.log(e.deltaY)
+        //     var oldTouch = tempTouch;
+        //     tempTouch = e.touches[0].screenY;
+        //     addScroll = 400;
+        //     var scrollDown = oldTouch - tempTouch < 0;
+        //     if (scrollDown) {
+        //         addScroll *= -1;
+        //     }
 
-            clearTimeout(timeScroll);
-            timeScroll = setTimeout(() => {
-                scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 500);
-                addScroll = 0;
-                timeId = timeId++;
-            }, 200);
+        //     clearTimeout(timeScroll);
+        //     timeScroll = setTimeout(() => {
+        //         scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 500);
+        //         addScroll = 0;
+        //         timeId = timeId++;
+        //     }, 200);
 
-        });
+        // });
     }, [])
 
     function shrinkSize() {
