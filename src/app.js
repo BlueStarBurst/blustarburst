@@ -50,8 +50,8 @@ if (navigator.userAgent.match(/(iPhone|Android|BlackBerry|Windows Phone)/)) {
 	console.log("mobile");
 	mobile = true;
     // attempt full screen
-    document.documentElement.requestFullscreen();
-    document.documentElement.webkitRequestFullscreen();
+    // document.documentElement.requestFullscreen();
+    // document.documentElement.webkitRequestFullscreen();
     // document.documentElement.mozRequestFullScreen();
     // document.documentElement.msRequestFullscreen();
 } else {
