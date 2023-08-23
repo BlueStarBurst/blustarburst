@@ -49,6 +49,11 @@ if (navigator.userAgent.match(/(iPhone|Android|BlackBerry|Windows Phone)/)) {
 	// do something for mobile devices
 	console.log("mobile");
 	mobile = true;
+    // attempt full screen
+    document.documentElement.requestFullscreen();
+    document.documentElement.webkitRequestFullscreen();
+    // document.documentElement.mozRequestFullScreen();
+    // document.documentElement.msRequestFullscreen();
 } else {
 	// do something for non-mobile devices
 	console.log("not mobile");

@@ -481,10 +481,11 @@ html {
 }
 
 .white-m img {
-  transform: translateY(-10%);
+  transform: translateY(-15%);
   /* margin-bottom: 2rem; */
   /* clip-path: circle(50% at 50% 50%); */
   border-radius: 25px;
+  max-width: 250px;
 }
 
 .textcol {
@@ -495,6 +496,10 @@ html {
   flex-wrap: wrap;
   height: 100%;
   max-width: 80vw;
+}
+
+.white-m .textcol {
+  gap: 1rem;
 }
 
 .btns {
