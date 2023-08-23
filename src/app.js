@@ -520,7 +520,7 @@ function App() {
 				<div className="pt" ref={pt}></div>
 			</div>
 			<div className={mobile ? "page white white-m" : "page white"} ref={wack}>
-				<div className={mobile ? "col" : "rows2"} ref={whiteText}>
+				<div className={mobile ? "col" : "rows2"} ref={whiteText} style={{opacity: 0}}>
 					<img src={bryant} />
 					<div className="textcol">
 						<h1>About</h1>
@@ -569,7 +569,7 @@ function App() {
 				</div>
 			</div>
 
-			<div className="page third" ref={slow}>
+			<div className={mobile ? "page third-m third" : "page third"} ref={slow}>
 				<h1>
 					<b>Projects</b>
 				</h1>
