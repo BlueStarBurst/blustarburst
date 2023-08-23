@@ -9,6 +9,8 @@
 html {
   overflow: hidden;
   scroll-behavior: smooth;
+  width: 100vw !important;
+  height: 100vh;
 }
 
 #root {
@@ -30,6 +32,17 @@ html {
   overflow: hidden;
 }
 
+.col {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  width: auto;
+}
+
 .copied h5 {
   padding: 0.5rem;
   margin: 0;
@@ -45,7 +58,8 @@ html {
 }
 
 .page {
-  width: 100%;
+  width: 100vw;
+  max-width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -222,6 +236,40 @@ html {
   animation: fadein 2s ease-in-out, gradient 12s ease-in-out infinite;
 }
 
+.text-m {
+  /* background: linear-gradient(90deg, #1a36a6, #1a36a6); */
+  --is-off: 1;
+  background: linear-gradient(0deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 35%,
+      rgba(255, 255, 255, 0.227) 50%,
+      rgba(0, 0, 0, 0) 65%,
+      rgba(0, 0, 0, 0) 100%),
+    linear-gradient(90deg,
+      rgba(95, 95, 95, var(--is-off)) 0%,
+      rgba(95, 95, 95, var(--is-off)) 100%),
+    radial-gradient(250px circle at var(--mouseX) var(--mouseY),
+      rgba(255, 255, 255, 0.633),
+      transparent 40%);
+  /* background-attachment: fixed; */
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
+  background-color: var(--card-color);
+  background-size: 400% 400%;
+  font-size: 4rem;
+  font-weight: bold;
+  text-align: center;
+  cursor: default;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  opacity: 1;
+  height: 3rem;
+  /* fade in after 1 second */
+  animation: fadein 2s ease-in-out, gradient 12s ease-in-out infinite;
+}
+
 @keyframes fadein {
   0% {
     opacity: 0;
@@ -278,9 +326,18 @@ html {
   flex-wrap: wrap;
 }
 
+.rows-start {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: start;
+  flex-wrap: wrap;
+}
+
 .rows2 {
   /* opacity: 0; */
   display: flex;
+  gap: 3rem;
   flex-direction: row;
   justify-content: center;
   align-items: center;
@@ -295,8 +352,10 @@ html {
   justify-content: center;
   align-items: center;
   transition: all 0.2s ease-in-out;
-  /* flex-wrap: wrap; */
+  flex-wrap: wrap; 
   gap: 1rem;
+  max-width: 100vw;
+
 }
 
 .text2 {
@@ -310,6 +369,11 @@ html {
   color: var(--card-color);
   /* fade in after 1 second */
   animation: fadein 2s ease-in-out, gradient 12s ease-in-out infinite;
+}
+
+.text2-m {
+  padding-top: 2rem;
+  font-size: 2rem;
 }
 
 .circle {
@@ -355,7 +419,7 @@ html {
 
 .white {
   background-color: rgb(142, 142, 142);
-  height: 80%;
+  height: max-content;
   z-index: 100;
   display: flex;
   justify-content: center;
@@ -363,6 +427,11 @@ html {
   flex-direction: column;
   padding: 5rem 15rem;
   color: black;
+  gap: 5rem;
+}
+
+.white-m {
+  padding: 0 0 4rem !important;
 }
 
 .white h1 {
@@ -379,9 +448,20 @@ html {
   min-width: 400px;
 }
 
+.white-m p {
+  min-width: 0;
+}
+
 .white img {
   max-width: 300px;
-  margin-right: 5rem;
+  
+  /* margin-bottom: 2rem; */
+  /* clip-path: circle(50% at 50% 50%); */
+  border-radius: 25px;
+}
+
+.white-m img {
+  transform: translateY(-10%);
   /* margin-bottom: 2rem; */
   /* clip-path: circle(50% at 50% 50%); */
   border-radius: 25px;
@@ -394,6 +474,7 @@ html {
   align-items: start;
   flex-wrap: wrap;
   height: 100%;
+  max-width: 80vw;
 }
 
 .btns {
@@ -421,11 +502,19 @@ html {
   display: flex;
   align-items: center;
   justify-content: start;
+  min-height: 300vh;
 }
 
 .misc {
   font-size: 175%;
   width: 1125px;
+  color: var(--card-color);
+  margin-bottom: 2rem;
+  text-align: right;
+}
+
+.misc-m {
+  font-size: 175%;
   color: var(--card-color);
   margin-bottom: 2rem;
   text-align: right;

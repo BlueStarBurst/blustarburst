@@ -44,6 +44,16 @@ import getHangul from "./hangul";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
+var mobile = false;
+if (navigator.userAgent.match(/(iPhone|Android|BlackBerry|Windows Phone)/)) {
+	// do something for mobile devices
+	console.log("mobile");
+	mobile = true;
+} else {
+	// do something for non-mobile devices
+	console.log("not mobile");
+}
+
 const darkTheme = createTheme({
 	palette: {
 		mode: "dark",
@@ -202,7 +212,7 @@ function Letter(props) {
 			onMouseEnter={onEnter}
 			onMouseLeave={onLeave}
 			ref={ref}
-			className="text"
+			className={mobile ? "text-m" : "text"}
 		>
 			{props.letter}
 		</div>
@@ -219,7 +229,7 @@ var tempTop = 0;
 var lastTouch = 0;
 
 function App() {
-	const [letters, setLetters] = useState("Bryant Hargreaves");
+	const [letters, setLetters] = useState("BryantHargreaves");
 	const [mousedown, setMousedown] = useState(false);
 
 	function hoverEffect(e, isRoot = false) {
@@ -248,6 +258,10 @@ function App() {
 	const slow = useRef();
 
 	useEffect(() => {
+		if (mobile) {
+			setLetters("BRYANTHARGREAVES");
+		}
+
 		document.getElementById("root").addEventListener("mousemove", function (e) {
 			circle.current.style.top = e.pageY - 25 + scrollPos + "px";
 			circle.current.style.left = e.pageX - 25 + "px";
@@ -280,19 +294,21 @@ function App() {
 		});
 
 		document.getElementById("root").addEventListener("touchmove", function (e) {
-			// e.preventDefault
-			// e.stopPropagation();
-			var elem = document.getElementById("root")
-			// console.log(e.deltaY)
+			e.preventDefault;
+			e.stopPropagation();
+			var elem = document.getElementById("root");
+			console.log(e);
+			console.log(e.touches[0].screenY);
 			// addScroll += e.deltaY;
 
-            if (lastTouch == 0) {
-                lastTouch = e.touches[0].screenY;
-            }
-            addScroll -= (e.touches[0].screenY - lastTouch) / 2;
-            // elem.scrollTop += e.touches[0].pageY - lastTouch;
-            scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 1);
-            lastTouch = e.touches[0].screenY;
+			if (lastTouch == 0) {
+				lastTouch = e.touches[0].screenY;
+			}
+			addScroll = (lastTouch - e.touches[0].screenY) * 2;
+			console.log(addScroll);
+			// elem.scrollTop = elem.scrollTop + addScroll;
+			scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 1);
+			lastTouch = e.touches[0].screenY;
 
 			// clearTimeout(timeScroll);
 			// timeScroll = setTimeout(() => {
@@ -300,12 +316,16 @@ function App() {
 			//     addScroll = 0;
 			//     timeId = timeId++;
 			// }, 200);
-			console.log(e);
+			// console.log(e);
 			circle.current.style.top = e.touches[0].pageY - 25 + scrollPos + "px";
 			circle.current.style.left = e.touches[0].pageX - 25 + "px";
 			pt.current.style.top = e.touches[0].pageY - 4 + scrollPos + "px";
 			pt.current.style.left = e.touches[0].pageX - 4 + "px";
 			tempTop = e.touches[0].pageY;
+		});
+
+		document.getElementById("root").addEventListener("touchend", function (e) {
+			lastTouch = 0;
 		});
 	}, []);
 
@@ -442,35 +462,52 @@ function App() {
 					{/* <div onMouseMove={(e) => { hoverEffect(e, true) }} className='text'>
                     Bryant Hargreaves
                 </div> */}
-
-					<div className="rows">
-						{letters.split("").map((letter, index) => {
-							if (index == 4) {
-								return (
-									<>
-										<br />
+					{mobile ? (
+						<div className="rows-start">
+							<div className="col">
+								{letters.split("").map((letter, index) => {
+									if (index >= 6) return;
+									return (
 										<Letter
 											onMouseMove={(e) => {
 												hoverEffect(e, false);
 											}}
 											letter={letter}
 										/>
-									</>
+									);
+								})}
+							</div>
+							<div className="col">
+								{letters.split("").map((letter, index) => {
+									if (index < 6) return;
+									return (
+										<Letter
+											onMouseMove={(e) => {
+												hoverEffect(e, false);
+											}}
+											letter={letter}
+										/>
+									);
+								})}
+							</div>
+						</div>
+					) : (
+						<div className="rows">
+							{letters.split("").map((letter, index) => {
+								return (
+									<Letter
+										onMouseMove={(e) => {
+											hoverEffect(e, false);
+										}}
+										letter={letter}
+									/>
 								);
-							}
-							return (
-								<Letter
-									onMouseMove={(e) => {
-										hoverEffect(e, false);
-									}}
-									letter={letter}
-								/>
-							);
-						})}
-					</div>
+							})}
+						</div>
+					)}
 
 					<p
-						className="text2"
+						className={mobile ? "text2-m text2" : "text2"}
 						onMouseMove={(e) => {
 							hoverEffect(e, false);
 						}}
@@ -482,8 +519,8 @@ function App() {
 				<div className="circle" ref={circle}></div>
 				<div className="pt" ref={pt}></div>
 			</div>
-			<div className="page white" ref={wack}>
-				<div className="rows2" ref={whiteText}>
+			<div className={mobile ? "page white white-m" : "page white"} ref={wack}>
+				<div className={mobile ? "col" : "rows2"} ref={whiteText}>
 					<img src={bryant} />
 					<div className="textcol">
 						<h1>About</h1>
@@ -662,7 +699,7 @@ function App() {
 						</a>
 					</div>
 				</div>
-				<p className="misc">
+				<p className={mobile ? "misc-m" : "misc"}>
 					and more on{" "}
 					<a href="https://github.com/BlueStarBurst" target="_blank">
 						github
