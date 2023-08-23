@@ -148,13 +148,18 @@ html {
   width: 99%;
 }
 
+.rows3-m .output-content {
+  padding: 1rem;
+}
+
 .output-content p {
   color: var(--card-color);
   font-size: 135%;
 }
 
 .rows3-m .output-content p {
-  font-size: 100%;
+  font-size: 110%;
+  text-align: center;
 }
 
 
@@ -164,6 +169,10 @@ html {
   margin: 0;
   padding: 0;
   margin-bottom: 1rem;
+}
+
+.rows3-m .output-content h3 {
+  font-size: 170%;
 }
 
 .output-content svg {
@@ -460,6 +469,7 @@ html {
 
 .white-m p {
   min-width: 0;
+  font-size: 110%;
 }
 
 .white img {
@@ -540,6 +550,11 @@ html {
   color: rgb(142, 142, 142);
   ;
   margin-bottom: 2rem;
+}
+
+.third-m h1 {
+  font-size: 250%;
+  margin-bottom: 1rem;
 }
 
 .behind {

@@ -691,7 +691,7 @@ function App() {
 								</h3>
 								<p>
 									Created the website for a non-profit organization that granted
-									scholarships to deserving students. THe organization was
+									scholarships to deserving students. The organization was
 									founded by my friend and I managed the technical aspects of
 									it.
 								</p>
