@@ -573,7 +573,7 @@ function App() {
 				<h1>
 					<b>Projects</b>
 				</h1>
-				<div className="rows3">
+				<div className={mobile ? "rows3 rows3-m" : "rows3"}>
 					<div className="relative">
 						<a
 							onMouseMove={hoverEffect2}
@@ -636,7 +636,7 @@ function App() {
 					</div>
 				</div>
 
-				<div className="rows3">
+				<div className={mobile ? "rows3 rows3-m" : "rows3"}>
 					<div className="relative">
 						<a
 							onMouseMove={hoverEffect2}
