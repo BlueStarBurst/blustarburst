@@ -18,6 +18,8 @@ html {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  position: absolute;
+  top: 0;
 }
 
 ::-webkit-scrollbar {
@@ -243,7 +245,7 @@ html {
   -webkit-background-clip: text;
   background-color: var(--card-color);
   background-size: 400% 400%;
-  font-size: 150px;
+  font-size: 8vw;
   font-weight: bold;
   text-align: center;
   cursor: default;

@@ -376,10 +376,10 @@ function App() {
 			(element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
 
 		console.log(slow.current.clientHeight);
-		var offsetHeight = window.innerHeight * 1.15;
+		var offsetHeight = window.innerHeight * 1;
 		slow.current.style.transform =
 			"translateY(" +
-			((-50 * Math.abs(element.scrollTop - offsetHeight)) / offsetHeight + 10) +
+			((-50 * Math.abs(element.scrollTop - offsetHeight)) / offsetHeight + 100) +
 			"%)";
 		slow.current.style.opacity =
 			(element.scrollTop - (window.innerHeight * 4) / 5) /
@@ -729,7 +729,38 @@ function App() {
 	);
 }
 
-render(<App />, document.getElementById("root"));
+function MobileFixer() {
+	const [width, setWidth] = useState(window.innerWidth);
+	const [height, setHeight] = useState(window.innerHeight);
+	const [showApp, setShowApp] = useState(true);
+	// get width of screen
+	useEffect(() => {
+		window.onresize = function () {
+			setWidth(window.innerWidth);
+			setHeight(window.innerHeight);
+		};
+	}, []);
+
+	useEffect(() => {
+		
+		var newMobile = width < height;
+		if (newMobile != mobile) {
+			mobile = newMobile;
+			setShowApp(false);
+			setTimeout(() => {
+				setShowApp(true);
+			}, 100);
+		}
+	}, [width, height]);
+
+	return (<>
+		{showApp && <App />}
+	</>)
+		
+
+}
+
+render(<MobileFixer />, document.getElementById("root"));
 
 var currentId = 0;
 
