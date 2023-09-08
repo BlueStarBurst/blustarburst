@@ -538,7 +538,7 @@ function App() {
 							mobile development, computer vision, and machine learning. Here's
 							my{" "}
 							<a
-								href="https://docs.google.com/document/d/1gNtBx9HQ1rqoOxBJM1lZkK_z0mCp0dszh4dDvM4uYwQ/edit?usp=sharing"
+								href="https://docs.google.com/document/d/16fHz9gQStfmP3opslMGKUIKPE6t7NV-TVRfcNHNbdAQ/edit?usp=sharing"
 								target="_blank"
 							>
 								resume
