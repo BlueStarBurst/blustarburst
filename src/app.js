@@ -49,11 +49,11 @@ if (navigator.userAgent.match(/(iPhone|Android|BlackBerry|Windows Phone)/)) {
 	// do something for mobile devices
 	console.log("mobile");
 	mobile = true;
-    // attempt full screen
-    // document.documentElement.requestFullscreen();
-    // document.documentElement.webkitRequestFullscreen();
-    // document.documentElement.mozRequestFullScreen();
-    // document.documentElement.msRequestFullscreen();
+	// attempt full screen
+	// document.documentElement.requestFullscreen();
+	// document.documentElement.webkitRequestFullscreen();
+	// document.documentElement.mozRequestFullScreen();
+	// document.documentElement.msRequestFullscreen();
 } else {
 	// do something for non-mobile devices
 	console.log("not mobile");
@@ -233,6 +233,8 @@ var scrollPos = 0;
 var tempTop = 0;
 var lastTouch = 0;
 
+var isTouchPad = false;
+
 function App() {
 	const [letters, setLetters] = useState("BryantHargreaves");
 	const [mousedown, setMousedown] = useState(false);
@@ -284,23 +286,62 @@ function App() {
 		});
 
 		document.getElementById("root").addEventListener("wheel", function (e) {
-			e.preventDefault();
-			e.stopPropagation();
+			// e.preventDefault();
+			// e.stopPropagation();
 			var elem = document.getElementById("root");
 			console.log(e.deltaY);
 			addScroll += e.deltaY;
+
+			console.log(isTouchPad);
+
+			if (isTouchPad) {
+				elem.scrollTop += e.deltaY;
+				console.log("touchpad");
+
+				wack.current.style.transform =
+					"translateY(" +
+					Math.max(-elem.scrollTop * 2, (-window.innerHeight * 3) / 4) +
+					"px)";
+				whiteText.current.style.opacity =
+					(elem.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
+
+				console.log(slow.current.clientHeight);
+				var offsetHeight = window.innerHeight * 1;
+				slow.current.style.transform =
+					"translateY(" +
+					((-50 * Math.abs(elem.scrollTop - offsetHeight)) / offsetHeight +
+						100) +
+					"%)";
+				slow.current.style.opacity =
+					(elem.scrollTop - (window.innerHeight * 4) / 5) /
+					(window.innerHeight / 4);
+
+				scrollPos = elem.scrollTop;
+
+				circle.current.style.top = tempTop - 25 + scrollPos + "px";
+				pt.current.style.top = tempTop - 4 + scrollPos + "px";
+				return;
+			}
+
+			// if using a mouse and not a trackpad
+			isTouchPad =
+				isTouchPad || e.wheelDeltaY
+					? e.wheelDeltaY === -3 * e.deltaY
+					: e.deltaMode === 0;
+			// your code
 
 			clearTimeout(timeScroll);
 			timeScroll = setTimeout(() => {
 				scrollToC(elem, elem.scrollTop, elem.scrollTop + addScroll, 500);
 				addScroll = 0;
 				timeId = timeId++;
-			}, 200);
+			}, 150);
 		});
 
 		document.getElementById("root").addEventListener("touchmove", function (e) {
 			e.preventDefault;
 			e.stopPropagation();
+			console.log("TOUCHES");
 			var elem = document.getElementById("root");
 			console.log(e);
 			console.log(e.touches[0].screenY);
@@ -331,6 +372,7 @@ function App() {
 
 		document.getElementById("root").addEventListener("touchend", function (e) {
 			lastTouch = 0;
+			console.log("TOUCHES END");
 		});
 	}, []);
 
@@ -376,14 +418,14 @@ function App() {
 			(element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
 
 		console.log(slow.current.clientHeight);
-		var offsetHeight = window.innerHeight * 1;
-		slow.current.style.transform =
-			"translateY(" +
-			((-50 * Math.abs(element.scrollTop - offsetHeight)) / offsetHeight + 100) +
-			"%)";
-		slow.current.style.opacity =
-			(element.scrollTop - (window.innerHeight * 4) / 5) /
-			(window.innerHeight / 4);
+		var offsetHeight = window.innerHeight * 2;
+		// move down and up 
+
+		console.log(offsetHeight + " " + element.scrollTop)
+		slow.current.style.transform = "translateY(" + (-1 * Math.abs(element.scrollTop - offsetHeight)) + "%)"; 
+		slow.current.style.opacity = 1;
+			// (element.scrollTop - (window.innerHeight * 4) / 5) /
+			// (window.innerHeight / 4);
 
 		scrollPos = element.scrollTop;
 
@@ -525,7 +567,11 @@ function App() {
 				<div className="pt" ref={pt}></div>
 			</div>
 			<div className={mobile ? "page white white-m" : "page white"} ref={wack}>
-				<div className={mobile ? "col" : "rows2"} ref={whiteText} style={{opacity: 0}}>
+				<div
+					className={mobile ? "col" : "rows2"}
+					ref={whiteText}
+					style={{ opacity: 0 }}
+				>
 					<img src={bryant} />
 					<div className="textcol">
 						<h1>About</h1>
@@ -713,6 +759,8 @@ function App() {
 				</p>
 			</div>
 
+			<div className="page">Ourworlds!</div>
+
 			<div className="page behind strip">
 				{/* <div class="back-row-toggle splat-toggle">
                     <div class="rain front-row"></div>
@@ -742,7 +790,6 @@ function MobileFixer() {
 	}, []);
 
 	useEffect(() => {
-		
 		var newMobile = width < height;
 		if (newMobile != mobile) {
 			mobile = newMobile;
@@ -753,11 +800,7 @@ function MobileFixer() {
 		}
 	}, [width, height]);
 
-	return (<>
-		{showApp && <App />}
-	</>)
-		
-
+	return <>{showApp && <App />}</>;
 }
 
 render(<MobileFixer />, document.getElementById("root"));
