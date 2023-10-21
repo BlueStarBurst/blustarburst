@@ -27,6 +27,7 @@ import firebase from "firebase/app";
 
 import bryant from "./img/new/amy2.png";
 import github from "./img/new/github.png";
+import backgroundImg from "./img/background.png";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -269,11 +270,15 @@ function App() {
 			setLetters("BRYANTHARGREAVES");
 		}
 
+		// document.getElementById("root").style.backgroundImage = `url(${backgroundImg})`;
+		// document.getElementById("root").style.backgroundSize = `cover`;
+
 		document.getElementById("root").addEventListener("mousemove", function (e) {
 			circle.current.style.top = e.pageY - 25 + scrollPos + "px";
 			circle.current.style.left = e.pageX - 25 + "px";
 			pt.current.style.top = e.pageY - 4 + scrollPos + "px";
 			pt.current.style.left = e.pageX - 4 + "px";
+
 			tempTop = e.pageY;
 		});
 		document.addEventListener("mousedown", function () {
@@ -410,32 +415,40 @@ function App() {
 		element.scrollTop = xFrom - (xFrom - xTo) * motion(t01);
 		t01 += speed * step;
 
-		wack.current.style.transform =
-			"translateY(" +
-			Math.max(-element.scrollTop * 2, (-window.innerHeight * 3) / 4) +
-			"px)";
-		whiteText.current.style.opacity =
-			(element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
-
-		console.log(slow.current.clientHeight);
-		var offsetHeight = window.innerHeight * 2;
-		// move down and up 
-
-		console.log(offsetHeight + " " + element.scrollTop)
-		slow.current.style.transform = "translateY(" + (-1 * Math.abs(element.scrollTop - offsetHeight)) + "%)"; 
-		slow.current.style.opacity = 1;
-			// (element.scrollTop - (window.innerHeight * 4) / 5) /
-			// (window.innerHeight / 4);
-
-		scrollPos = element.scrollTop;
-
-		circle.current.style.top = tempTop - 25 + scrollPos + "px";
-		pt.current.style.top = tempTop - 4 + scrollPos + "px";
+		determineElems(element);
 
 		// debugger;
 		setTimeout(function () {
 			scrollToX(element, xFrom, xTo, t01, speed, step, motion);
 		}, step);
+	}
+
+	function determineElems(element) {
+		var wackTransform = Math.max(
+			-element.scrollTop * 2,
+			(-window.innerHeight * 3) / 4
+		);
+		wack.current.style.transform = "translateY(" + wackTransform + "px)";
+		whiteText.current.style.opacity =
+			(element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
+
+		console.log(slow.current.clientHeight);
+		var offsetHeight = window.innerHeight * 1.5;
+		// move down and up
+
+		console.log(offsetHeight + " " + element.scrollTop);
+		slow.current.style.transform =
+			"translateY(" +
+			(-1 * Math.abs(element.scrollTop - offsetHeight)) / 20 +
+			"%)";
+		slow.current.style.opacity =
+			(element.scrollTop - (window.innerHeight * 4) / 5) /
+			(window.innerHeight / 4);
+
+		scrollPos = element.scrollTop;
+
+		circle.current.style.top = tempTop - 25 + scrollPos + "px";
+		pt.current.style.top = tempTop - 4 + scrollPos + "px";
 	}
 
 	function hoverEffect2(e) {
@@ -772,7 +785,10 @@ function App() {
                     </div>
                 </div> */}
 			</div>
-			<div className="page behind"></div>
+
+
+
+			<div className="page behind" style={{backgroundImage: "url(" + backgroundImg + ")"}}></div>
 		</ThemeProvider>
 	);
 }

@@ -522,8 +522,8 @@ html {
 }
 
 .third {
-  /* margin-top: -75vh; */
-  position: absolute;
+  margin-top: 10vh; 
+  position: fixed;
   top: 0;
   left: 0;
   opacity: 0;
@@ -567,6 +567,15 @@ html {
 
 .behind {
   z-index: -100000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  overflow: hidden;
+  height: 800vh;
+  
+  background-repeat: repeat-y;
+  background-size: contain;
 }
 
 .rain {
