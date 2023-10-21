@@ -772,7 +772,7 @@ function App() {
 				</p>
 			</div>
 
-			<div className="page">Ourworlds!</div>
+			{/* <div className="page">Ourworlds!</div> */}
 
 			<div className="page behind strip">
 				{/* <div class="back-row-toggle splat-toggle">
