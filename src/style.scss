@@ -789,12 +789,10 @@ body.single-toggle .drop:nth-child(10) {
 
 .new2 p {
   animation: rightToLeft 10s linear infinite;
-
 }
 
 .new p, .newb p {
   color: black;
-  animation: leftToRight 10s linear infinite;
   margin: 0;
   font-size: 300%;
 }
@@ -808,19 +806,28 @@ body.single-toggle .drop:nth-child(10) {
 
 .new-img {
   position: absolute;
-  width: 100%;
+  width: 100vw;
   height: 100%;
   overflow: hidden;
-  opacity: 0.5;
+  opacity: 0.85;
+  top: 0;
+  left: 0;
+  cursor: pointer;
 }
 
 .new-page img {
-  max-width: 100% !important;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-width: 100vw !important;
+  width: 100vw;
+  height: fit-content;
+  object-fit: contain;
   object-position: center;
+}
 
+.new-page-m img {
+  transform: rotate(90deg) translateY(21%);
+  max-width: 200vw !important;
+  width: fit-content;
+  height: 100vh;
 }
 
 @keyframes leftToRight {

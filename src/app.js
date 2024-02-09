@@ -776,10 +776,21 @@ function App() {
 
 			<div
 				className={
-					mobile ? "page white white-m new-page" : "page white new-page"
+					mobile
+						? "page white white-m new-page new-page-m"
+						: "page white new-page"
 				}
 			>
-				<div className="new-img">
+				<div
+					className="new-img"
+					onClick={(e) => {
+						// open link in new tab
+						window.open(
+							"https://github.com/BlueStarBurst/tensorboard",
+							"_blank"
+						);
+					}}
+				>
 					<img src="https://github.com/BlueStarBurst/tensorboard/blob/master/imgs/img2.png?raw=true" />
 				</div>
 				<div className="new new1">
@@ -804,7 +815,7 @@ function App() {
 						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
 					</p>
 				</div>
-				<div className="newb new1">
+				<div className="newb new2">
 					<p>
 						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
 					</p>
@@ -815,7 +826,7 @@ function App() {
 						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
 					</p>
 				</div>
-				<div className="newb new2">
+				<div className="newb new1">
 					<p>
 						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
 					</p>
@@ -828,7 +839,6 @@ function App() {
 				</div>
 
 				{/* <h1><b>Tensorboard</b></h1> */}
-				
 
 				<div className={mobile ? "rows3 rows3-m" : "rows3"}></div>
 			</div>
