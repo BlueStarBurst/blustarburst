@@ -433,13 +433,13 @@ function App() {
 			(element.scrollTop - window.innerHeight / 8) / (window.innerHeight / 6);
 
 		console.log(slow.current.clientHeight);
-		var offsetHeight = window.innerHeight * 1.5;
+		var offsetHeight = window.innerHeight * 1.25;
 		// move down and up
 
 		console.log(offsetHeight + " " + element.scrollTop);
 		slow.current.style.transform =
 			"translateY(" +
-			(-1 * Math.abs(element.scrollTop - offsetHeight)) / 20 +
+			(-1 * Math.abs(element.scrollTop - offsetHeight)) / 10 +
 			"%)";
 		slow.current.style.opacity =
 			(element.scrollTop - (window.innerHeight * 4) / 5) /
@@ -774,6 +774,65 @@ function App() {
 
 			{/* <div className="page">Ourworlds!</div> */}
 
+			<div
+				className={
+					mobile ? "page white white-m new-page" : "page white new-page"
+				}
+			>
+				<div className="new-img">
+					<img src="https://github.com/BlueStarBurst/tensorboard/blob/master/imgs/img2.png?raw=true" />
+				</div>
+				<div className="new new1">
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+				</div>
+				<div className="new new2">
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+				</div>
+				<div className="newb new1">
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+				</div>
+				<div className="newb new2">
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+					<p>
+						<b>NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW </b>
+					</p>
+				</div>
+
+				{/* <h1><b>Tensorboard</b></h1> */}
+				
+
+				<div className={mobile ? "rows3 rows3-m" : "rows3"}></div>
+			</div>
+
 			<div className="page behind strip">
 				{/* <div class="back-row-toggle splat-toggle">
                     <div class="rain front-row"></div>
@@ -786,9 +845,10 @@ function App() {
                 </div> */}
 			</div>
 
-
-
-			<div className="page behind" style={{backgroundImage: "url(" + backgroundImg + ")"}}></div>
+			<div
+				className="page behind"
+				style={{ backgroundImage: "url(" + backgroundImg + ")" }}
+			></div>
 		</ThemeProvider>
 	);
 }
