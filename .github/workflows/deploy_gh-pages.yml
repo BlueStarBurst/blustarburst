@@ -2,7 +2,7 @@ name: CI - build and deploy
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   build:
