@@ -70,7 +70,7 @@ function App() {
     const cw = window.innerWidth;
     const ch = window.innerHeight;
 
-    engine.current.gravity.y = 0;
+    // engine.current.gravity.y = 0;
 
     if (scene.current && scene.current.children.length == 0) {
       console.log('Creating canvas');
@@ -112,7 +112,7 @@ function App() {
       10,
       function (x: number, y: number) {
         return Bodies.rectangle(x, y, 50, 20, {
-          collisionFilter: { category: groupRope },
+          collisionFilter: { category: groupRope, group: groupRope },
         });
       }
     );
@@ -120,28 +120,30 @@ function App() {
     // add a big circle at the end of the rope
     Composite.add(
       ropeA,
-      Bodies.circle(450, -80, 40, {
+      Bodies.circle(450, -80, 20, {
         density: 0.001,
         collisionFilter: {
+          group: groupRope,
           category: groupRope,
-          mask: defaultCategory | groupRope,
+          mask: -1,
         },
       })
     );
     Composite.add(
       ropeA,
       Bodies.circle(250, -80, 40, {
-        density: 0.0007,
+        density: 0.001,
         collisionFilter: {
+          group: groupRope,
           category: groupRope,
-          mask: defaultCategory | groupRope,
+          mask: -1,
         },
       })
     );
 
     Composites.chain(ropeA, 0.5, 0, -0.5, 0, {
-      stiffness: 0.7,
-      length: 20,
+      stiffness: 0.4,
+      length: 40,
       render: { type: 'line' },
     });
     Composite.add(
@@ -394,10 +396,6 @@ function App() {
 
       if (!ctx) return;
 
-      ropeA.bodies.forEach((element) => {
-        Body.applyForce(element, element.position, { x: 0, y: 0.001 });
-      });
-
       if (mouseConstraint.body == wall) {
         if (mouseOffset.x == -1 && mouseOffset.y == -1) {
           mouseOffset = {
@@ -539,14 +537,14 @@ function App() {
 
   return (
     <>
-      <div ref={scene} className="w-screen h-screen opacity-10" />
+      <div ref={scene} className="h-screen w-screen opacity-10" />
       <canvas
         ref={view}
-        className="w-full h-full absolute top-0 left-0"
+        className="absolute left-0 top-0 h-full w-full"
         style={{ pointerEvents: 'none' }}
       />
 
-      <div className="absolute w-screen h-screen top-0 left-0 text-black pointer-events-none">
+      <div className="pointer-events-none absolute left-0 top-0 h-screen w-screen text-black">
         {pow2.current && <p>Bryant Hargreaves</p>}
       </div>
     </>
