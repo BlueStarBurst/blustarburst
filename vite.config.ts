@@ -13,7 +13,7 @@ const isProduction = `${nodeEnv}` === 'production';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  ...(isProduction ? { base: `/${name}/` } : { build: { sourcemap: true } }),
+  ...(isProduction ? { base: `/` } : { build: { sourcemap: true } }),
 
   plugins: isProduction
     ? [splitVendorChunkPlugin(), react(), tsconfigPaths()]
