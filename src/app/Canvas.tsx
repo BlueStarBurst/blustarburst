@@ -31,7 +31,12 @@ import './App.css';
 import { ThemeContext } from './ThemeProvider';
 import { cn } from '@nextui-org/react';
 
-export default function Canvas() {
+type CanvasProps = {
+  powered: { [key: string]: boolean };
+  setPowered: (powered: { [key: string]: boolean }) => void;
+};
+
+export default function Canvas({ powered, setPowered }: CanvasProps) {
   const { theme, setTheme } = useContext(ThemeContext);
 
   const scene = useRef<HTMLDivElement | null>(null);
@@ -42,10 +47,6 @@ export default function Canvas() {
   const engine = useRef(Engine.create());
   const runner = useRef(Runner.create());
   const render = useRef<Render | null>(null);
-
-  const [powered, setPowered] = useState<{ [key: string]: boolean }>({
-    outlet2: true,
-  });
 
   const [start, started] = useState(false);
 
@@ -100,7 +101,8 @@ export default function Canvas() {
     function createRope(
       x: number,
       y: number,
-      length: number
+      length: number,
+      label: string
     ): [Composite, Body] {
       const ropeA = Composites.stack(
         x,
@@ -131,7 +133,7 @@ export default function Canvas() {
 
       const plug1 = Bodies.circle(x + 50 * length, y, 40, {
         density: 0.001,
-        label: Math.random().toString(36).substring(7),
+        label: label,
         collisionFilter: {
           group: groupRope,
           category: groupRope,
@@ -185,8 +187,8 @@ export default function Canvas() {
 
     World.add(engine.current.world, [outletRect, outletRect2, wall]);
 
-    const [wire1, plug1] = createRope(cw / 4, -300, ch / 80);
-    const [wire2, plug2] = createRope(cw + 300, ch + 100, 7);
+    const [wire1, plug1] = createRope(cw / 4, -300, ch / 80, 'plug1');
+    const [wire2, plug2] = createRope(cw + 300, ch + 100, 7, 'plug2');
 
     const outlets = [outletRect, outletRect2];
     const wires = [wire1, wire2];
@@ -407,19 +409,27 @@ export default function Canvas() {
       cooldown.current = false;
     }, 1000);
 
+    let inversion = 1;
+
     Events.on(engine.current, 'afterUpdate', function () {
       const ctx = view.current?.getContext('2d');
 
       if (!ctx) return;
 
-      if (
-        Object.values(connections.current).filter(
-          (v) => v && v.label === 'outlet2'
-        ).length === 0
-      ) {
-        ctx.filter = 'invert(1)';
+      if (!connections.current['plug2']) {
+        if (inversion < 1) {
+          inversion += 0.025;
+          ctx.filter = 'invert(' + inversion + ')';
+        } else {
+          ctx.filter = 'invert(1)';
+        }
       } else {
-        ctx.filter = 'none';
+        if (inversion > 0) {
+          inversion -= 0.025;
+          ctx.filter = 'invert(' + inversion + ')';
+        } else {
+          ctx.filter = 'invert(0)';
+        }
       }
 
       if (startConnections.length > 0) {
@@ -583,14 +593,15 @@ export default function Canvas() {
       // check the connections
       // console.log(connections.current);
       setPowered(
-        Object.values(connections.current).reduce((acc, value) => {
-          if (value) {
-            acc[value.label] = true;
-          }
-          return acc;
-        }, {} as { [key: string]: boolean })
+        Object.keys(connections.current).reduce<{ [key: string]: boolean }>(
+          (acc, key) => {
+            acc[key] = connections.current[key] !== null;
+            return acc;
+          },
+          {}
+        )
       );
-    }, 100);
+    }, 10);
 
     window.addEventListener('resize', resizeCanvas);
 
@@ -611,7 +622,7 @@ export default function Canvas() {
   }, [start]);
 
   useEffect(() => {
-    if (powered['outlet2']) {
+    if (powered['plug2']) {
       setTheme('light');
     } else {
       setTheme('dark');
@@ -620,19 +631,17 @@ export default function Canvas() {
   }, [powered]);
 
   return (
-    <div
-      className={cn(
-        'h-screen w-screen',
-        theme === 'light' ? 'bg-white' : 'bg-black'
-      )}
-    >
-      <div ref={scene} className="h-screen w-screen opacity-10" />
+    <div className={cn('absolute left-0 top-0 h-screen w-screen')}>
+      <div
+        ref={scene}
+        className="pointer-events-auto h-screen w-screen opacity-10"
+      />
       <canvas
         ref={view}
         className="absolute left-0 top-0 h-full w-full"
         style={{ pointerEvents: 'none' }}
       />
-      {powered['outlet1'] && <div></div>}
+      {powered['plug2'] && <div></div>}
     </div>
   );
 }
