@@ -16,8 +16,8 @@ function App() {
       className={cn(
         'pointer-events-none min-h-screen w-screen transition-all duration-400',
         powered['plug2']
-          ? 'border-black bg-white text-black light'
-          : 'border-white bg-black text-white dark'
+          ? 'border-black bg-white text-black'
+          : 'border-white bg-black text-white'
       )}
     >
       <Canvas powered={powered} setPowered={setPowered} />
@@ -36,10 +36,11 @@ function App() {
         </div>
         <div
           className={cn(
-            'absolute bottom-0 rounded-lg  border border-inherit bg-gray-500 bg-opacity-20 py-4 transition-all duration-700',
+            'absolute bottom-0 rounded-lg border border-black bg-gray-500 bg-opacity-20 py-4 transition-all duration-700',
             powered['plug1']
               ? '-translate-x-[20vw] translate-y-[30%] -rotate-[5deg]'
-              : 'translate-y-[100%] rotate-90'
+              : 'translate-y-[100%] rotate-90',
+            powered['plug2'] ? 'border-black' : 'border-white'
           )}
         >
           <div className="text-xl font-semibold">
