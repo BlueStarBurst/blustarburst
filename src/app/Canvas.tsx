@@ -43,7 +43,9 @@ export default function Canvas() {
   const runner = useRef(Runner.create());
   const render = useRef<Render | null>(null);
 
-  const [powered, setPowered] = useState<{ [key: string]: boolean }>({});
+  const [powered, setPowered] = useState<{ [key: string]: boolean }>({
+    outlet2: true,
+  });
 
   const [start, started] = useState(false);
 
@@ -314,6 +316,8 @@ export default function Canvas() {
       render.current!.textures[viteLogo] = wallsocket;
     };
 
+    const imgs = [plugImg1, plugImg2, outlet, wallsocket];
+
     function drawWallSocket(ctx: CanvasRenderingContext2D, body: Body) {
       ctx.drawImage(
         wallsocket,
@@ -399,10 +403,24 @@ export default function Canvas() {
 
     let mouseOffset = { x: -1, y: -1 };
 
+    setTimeout(() => {
+      cooldown.current = false;
+    }, 1000);
+
     Events.on(engine.current, 'afterUpdate', function () {
       const ctx = view.current?.getContext('2d');
 
       if (!ctx) return;
+
+      if (
+        Object.values(connections.current).filter(
+          (v) => v && v.label === 'outlet2'
+        ).length === 0
+      ) {
+        ctx.filter = 'invert(1)';
+      } else {
+        ctx.filter = 'none';
+      }
 
       if (startConnections.length > 0) {
         for (let i = 0; i < startConnections.length; i++) {
@@ -416,8 +434,8 @@ export default function Canvas() {
           } else {
             // move the plug towards the outlet
             Body.setPosition(plug, {
-              x: plug.position.x + (outlet.position.x - plug.position.x) / 2,
-              y: plug.position.y + (outlet.position.y - plug.position.y) / 2,
+              x: plug.position.x + (outlet.position.x - plug.position.x) / 1.5,
+              y: plug.position.y + (outlet.position.y - plug.position.y) / 1.5,
             });
           }
         }
@@ -517,24 +535,6 @@ export default function Canvas() {
         }
       });
     });
-
-    setTimeout(() => {
-      Object.keys(connections.current).forEach((key) => {
-        if (connections.current[key]) {
-          console.log('Checking connection', plugs);
-          const plug = plugs.find((plug) => plug.label === key);
-          console.log(
-            'Checking connection',
-            key,
-            plug,
-            connections.current[key]
-          );
-          if (plug === undefined) {
-            delete connections.current[key];
-          }
-        }
-      });
-    }, 1000);
   }
 
   function resizeCanvas() {
@@ -561,6 +561,11 @@ export default function Canvas() {
   useEffect(() => {
     // remove all children of scene
 
+    if (!start) {
+      started(true);
+      return;
+    }
+
     console.log('App mounted');
 
     if (scene.current) {
@@ -568,9 +573,11 @@ export default function Canvas() {
       loadCanvas();
     }
 
-    setTimeout(() => {
-      resizeCanvas();
-    }, 100);
+    resizeCanvas();
+
+    // setTimeout(() => {
+    //   resizeCanvas();
+    // }, 100);
 
     setInterval(() => {
       // check the connections
@@ -589,16 +596,19 @@ export default function Canvas() {
 
     return () => {
       console.log('App unmounted');
+
+      connections.current = {};
+      Runner.stop(runner.current);
+      if (render.current) {
+        Render.stop(render.current);
+      }
+      World.clear(engine.current.world, false);
       if (scene.current) {
         scene.current.innerHTML = '';
       }
-      connections.current = {};
-      Runner.stop(runner.current);
-      // Render.stop(render.current);
-      World.clear(engine.current.world, false);
       // render.current.textures = {};
     };
-  }, []);
+  }, [start]);
 
   useEffect(() => {
     if (powered['outlet2']) {
