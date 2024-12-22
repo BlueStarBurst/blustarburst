@@ -36,7 +36,7 @@ function App() {
         </div>
         <div
           className={cn(
-            'absolute bottom-0 flex flex-col items-center justify-start rounded-lg border border-black bg-pink-500/5 py-4 backdrop-blur-sm transition-all duration-700',
+            'absolute bottom-0 flex flex-col items-center justify-start rounded-lg border border-black bg-pink-500/35 py-4 backdrop-blur-sm transition-all duration-700',
             powered['plug1']
               ? '-translate-x-[0vw] translate-y-[30%] -rotate-[5deg]'
               : 'translate-y-[100%] rotate-90',
