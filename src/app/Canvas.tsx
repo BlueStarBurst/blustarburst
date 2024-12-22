@@ -634,7 +634,7 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
     <div className={cn('absolute left-0 top-0 h-screen w-screen')}>
       <div
         ref={scene}
-        className="pointer-events-auto h-screen w-screen overflow-hidden opacity-10"
+        className="pointer-events-auto h-screen w-screen overflow-hidden opacity-0"
       />
       <canvas
         ref={view}

@@ -36,9 +36,9 @@ function App() {
         </div>
         <div
           className={cn(
-            'absolute bottom-0 flex flex-col items-center justify-start rounded-lg border border-black bg-gray-500 bg-opacity-20 py-4 backdrop-blur-sm transition-all duration-700',
+            'absolute bottom-0 flex flex-col items-center justify-start rounded-lg border border-black bg-pink-500/5 py-4 backdrop-blur-sm transition-all duration-700',
             powered['plug1']
-              ? '-translate-x-[20vw] translate-y-[30%] -rotate-[5deg]'
+              ? '-translate-x-[0vw] translate-y-[30%] -rotate-[5deg]'
               : 'translate-y-[100%] rotate-90',
             powered['plug2'] ? 'border-black' : 'border-white'
           )}
@@ -52,7 +52,12 @@ function App() {
                 isExternal
                 href="https://tensorboard--tensorboard-234f6.us-central1.hosted.app"
               >
-                <div className="flex w-full cursor-pointer flex-row rounded-lg border border-black p-4 transition-colors hover:bg-gray-500/30">
+                <div
+                  className={cn(
+                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
+                    powered['plug2'] ? 'border-black' : 'border-white'
+                  )}
+                >
                   Tensorboard
                   <div className="h-[100px]" />
                 </div>
@@ -62,7 +67,10 @@ function App() {
                 <Link
                   isExternal
                   href="https://tensorboard--tensorboard-234f6.us-central1.hosted.app"
-                  className="flex w-full cursor-pointer flex-row rounded-lg border border-black p-4 transition-colors hover:bg-gray-500/30"
+                  className={cn(
+                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
+                    powered['plug2'] ? 'border-black' : 'border-white'
+                  )}
                 >
                   <div>
                     ourworlds!
@@ -72,7 +80,10 @@ function App() {
                 <Link
                   isExternal
                   href="https://tensorboard--tensorboard-234f6.us-central1.hosted.app"
-                  className="flex w-full cursor-pointer flex-row rounded-lg border border-black p-4 transition-colors hover:bg-gray-500/30"
+                  className={cn(
+                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
+                    powered['plug2'] ? 'border-black' : 'border-white'
+                  )}
                 >
                   <div>
                     storyboard!
@@ -85,7 +96,12 @@ function App() {
                 isExternal
                 href="https://tensorboard--tensorboard-234f6.us-central1.hosted.app"
               >
-                <div className="flex w-full cursor-pointer flex-row rounded-lg border border-black p-4 transition-colors hover:bg-gray-500/30">
+                <div
+                  className={cn(
+                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
+                    powered['plug2'] ? 'border-black' : 'border-white'
+                  )}
+                >
                   AIM
                   <div className="h-[500px]" />
                 </div>
