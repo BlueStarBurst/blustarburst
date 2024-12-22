@@ -532,7 +532,7 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
         if (plug.position.x < 0 || plug.position.x > cw) {
           Body.setVelocity(plug, { x: 0, y: 0 });
           Body.setPosition(plug, {
-            x: plug.position.x + (cw / 2 - plug.position.x) / 10,
+            x: plug.position.x + (cw / 2 - plug.position.x) / 5,
             y: plug.position.y,
           });
         }
@@ -540,7 +540,7 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
           Body.setVelocity(plug, { x: 0, y: 0 });
           Body.setPosition(plug, {
             x: plug.position.x,
-            y: plug.position.y + (ch / 2 - plug.position.y) / 10,
+            y: plug.position.y + (ch / 2 - plug.position.y) / 5,
           });
         }
       });
@@ -634,7 +634,7 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
     <div className={cn('absolute left-0 top-0 h-screen w-screen')}>
       <div
         ref={scene}
-        className="pointer-events-auto h-screen w-screen opacity-10"
+        className="pointer-events-auto h-screen w-screen overflow-hidden opacity-10"
       />
       <canvas
         ref={view}
