@@ -14,16 +14,19 @@ function App() {
   return (
     <div
       className={cn(
-        'scroll pointer-events-none min-h-screen w-screen transition-all duration-400',
+        'scroll pointer-events-none min-h-screen w-screen transition-all duration-700',
         powered['plug2']
-          ? 'border-black bg-white text-black'
-          : 'border-white bg-black text-white'
+          ? 'border-black/75  bg-white text-black'
+          : 'border-white/50 bg-black text-white'
       )}
     >
       <Canvas powered={powered} setPowered={setPowered} />
       <div
         className={cn(
-          'absolute z-10 flex h-screen w-screen flex-row items-center justify-center overflow-hidden '
+          'absolute z-0 flex h-screen w-screen flex-row items-center justify-center overflow-hidden transition-all duration-700 ',
+          powered['plug2']
+            ? 'border-black/75  text-black'
+            : 'border-white/50 text-white'
         )}
       >
         <div
@@ -36,11 +39,13 @@ function App() {
         </div>
         <div
           className={cn(
-            'absolute bottom-0 flex flex-col items-center justify-start rounded-lg border border-black bg-pink-500/35 py-4 backdrop-blur-sm transition-all duration-700',
+            'absolute bottom-0 flex flex-col items-center justify-start rounded-lg border border-black/75  bg-pink-500/35 py-4 backdrop-blur-sm transition-all duration-700',
             powered['plug1']
               ? '-translate-x-[0vw] translate-y-[30%] -rotate-[5deg]'
               : 'translate-y-[100%] rotate-90',
-            powered['plug2'] ? 'border-black' : 'border-white'
+            powered['plug2']
+              ? 'border-black/75  text-black'
+              : 'border-white/50 text-white'
           )}
         >
           <div className="absolute text-xl font-semibold">
@@ -54,12 +59,18 @@ function App() {
               >
                 <div
                   className={cn(
-                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
-                    powered['plug2'] ? 'border-black' : 'border-white'
+                    'flex w-full cursor-pointer flex-col items-start rounded-lg border p-4 transition-all duration-700 hover:bg-gray-500/30',
+                    powered['plug2']
+                      ? 'border-black/75  text-black'
+                      : 'border-white/50 text-white'
                   )}
                 >
                   Tensorboard
-                  <div className="h-[100px]" />
+                  <p className="text-left text-sm">
+                    An online drag-and-drop tool to help students learn about
+                    machine learning through code snippets!
+                  </p>
+                  {/* <div className="h-[50px]" /> */}
                 </div>
               </Link>
 
@@ -68,27 +79,33 @@ function App() {
                   isExternal
                   href="https://tensorboard--tensorboard-234f6.us-central1.hosted.app"
                   className={cn(
-                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
-                    powered['plug2'] ? 'border-black' : 'border-white'
+                    'flex w-full cursor-pointer flex-col items-start justify-start rounded-lg border p-4 transition-all duration-700 hover:bg-gray-500/30',
+                    powered['plug2']
+                      ? 'border-black/75  text-black'
+                      : 'border-white/50 text-white'
                   )}
                 >
-                  <div>
-                    ourworlds!
-                    <div className="h-[100px]" />
-                  </div>
+                  ourworlds!
+                  <p className="text-left text-xs">
+                    An online drag-and-drop tool to help students learn about
+                    machine learning through code snippets!
+                  </p>
                 </Link>
                 <Link
                   isExternal
                   href="https://tensorboard--tensorboard-234f6.us-central1.hosted.app"
                   className={cn(
-                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
-                    powered['plug2'] ? 'border-black' : 'border-white'
+                    'flex w-full cursor-pointer flex-col items-start justify-start rounded-lg border p-4 transition-all duration-700 hover:bg-gray-500/30',
+                    powered['plug2']
+                      ? 'border-black/75  text-black'
+                      : 'border-white/50 text-white'
                   )}
                 >
-                  <div>
-                    storyboard!
-                    <div className="h-[100px]" />
-                  </div>
+                  storyboard!
+                  <p className="text-left text-xs">
+                    An online drag-and-drop tool to help students learn about
+                    machine learning through code snippets!
+                  </p>
                 </Link>
               </div>
 
@@ -98,11 +115,17 @@ function App() {
               >
                 <div
                   className={cn(
-                    'flex w-full cursor-pointer flex-row rounded-lg border p-4 transition-all hover:bg-gray-500/30',
-                    powered['plug2'] ? 'border-black' : 'border-white'
+                    'flex w-full cursor-pointer flex-col items-start rounded-lg border p-4 transition-all duration-700 hover:bg-gray-500/30',
+                    powered['plug2']
+                      ? 'border-black/75  text-black'
+                      : 'border-white/50 text-white'
                   )}
                 >
                   AIM
+                  <p className="text-left text-sm">
+                    An online drag-and-drop tool to help students learn about
+                    machine learning through code snippets!
+                  </p>
                   <div className="h-[500px]" />
                 </div>
               </Link>

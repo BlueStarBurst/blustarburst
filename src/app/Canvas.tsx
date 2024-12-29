@@ -536,7 +536,7 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
             y: plug.position.y,
           });
         }
-        if (plug.position.y < 0 || plug.position.y > ch) {
+        if (plug.position.y > ch) {
           Body.setVelocity(plug, { x: 0, y: 0 });
           Body.setPosition(plug, {
             x: plug.position.x,
@@ -603,10 +603,31 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
       );
     }, 10);
 
+    function dragCanvas() {
+      if (scene.current) {
+        scene.current.style.zIndex = '100';
+      }
+    }
+    function unDragCanvas() {
+      if (scene.current) {
+        scene.current.style.zIndex = '0';
+      }
+    }
+
+    if (scene.current) {
+      scene.current.addEventListener('mousedown', dragCanvas);
+      scene.current.addEventListener('mouseup', unDragCanvas);
+    }
+
     window.addEventListener('resize', resizeCanvas);
 
     return () => {
       console.log('App unmounted');
+
+      if (scene.current) {
+        scene.current.removeEventListener('mousedown', dragCanvas);
+        scene.current.removeEventListener('mouseup', unDragCanvas);
+      }
 
       connections.current = {};
       Runner.stop(runner.current);
@@ -631,17 +652,17 @@ export default function Canvas({ powered, setPowered }: CanvasProps) {
   }, [powered]);
 
   return (
-    <div className={cn('absolute left-0 top-0 h-screen w-screen')}>
+    <>
       <div
         ref={scene}
-        className="pointer-events-auto h-screen w-screen overflow-hidden opacity-0"
+        className="pointer-events-auto absolute z-[1000] h-screen w-screen overflow-hidden opacity-0"
       />
       <canvas
         ref={view}
-        className="absolute left-0 top-0 h-full w-full"
+        className="absolute left-0 top-0 z-0 h-full w-full"
         style={{ pointerEvents: 'none' }}
       />
       {powered['plug2'] && <div></div>}
-    </div>
+    </>
   );
 }
